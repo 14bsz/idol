@@ -13,8 +13,8 @@ RUN mvn dependency:go-offline -B
 # 复制源代码
 COPY backend/src ./src
 
-# 编译打包
-RUN mvn clean package -DskipTests
+# 编译打包，输出完整异常，便于云托管排查
+RUN mvn -e clean package -DskipTests
 
 # 第二阶段：运行阶段
 FROM openjdk:17-jdk-slim
