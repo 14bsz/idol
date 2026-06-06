@@ -1,5 +1,5 @@
 # 第一阶段：编译阶段
-FROM maven:3.8.6-openjdk-17 AS builder
+FROM maven:3.9 AS builder
 
 # 设置工作目录
 WORKDIR /app
