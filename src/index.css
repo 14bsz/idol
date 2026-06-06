@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-brand-pink: #fce4ec;
+  --color-brand-lavender: #f3e5f5;
+  --color-brand-cream: #fff9f0;
+  --color-brand-soft-gray: #f8f9fa;
+  
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-cream text-slate-800 font-sans antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(252, 228, 236, 0.5) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(243, 229, 245, 0.5) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+.glass {
+  @apply bg-white/40 backdrop-blur-md border border-white/20;
+}
+
+.shadow-soft {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
