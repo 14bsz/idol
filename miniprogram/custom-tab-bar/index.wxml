@@ -1,0 +1,12 @@
+<view class="tab-bar">
+  <view class="tab-bar-inner">
+    <block wx:for="{{list}}" wx:key="index">
+      <view class="tab-item" data-path="{{item.pagePath}}" data-index="{{index}}" bindtap="switchTab">
+        <view class="tab-icon-wrapper" style="{{selected === index ? 'transform: translateY(-4px) scale(1.2);' : ''}}">
+          <image class="tab-icon-img" src="{{selected === index ? item.selectedIcon : item.icon}}" mode="aspectFit"></image>
+        </view>
+        <text class="tab-text" style="{{selected === index ? 'color: ' + selectedColor + ';' : 'color: ' + color + ';'}}">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+</view>

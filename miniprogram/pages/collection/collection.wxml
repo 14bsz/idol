@@ -1,0 +1,96 @@
+<view class="container" style="padding: 24px; padding-bottom: 96px;">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
+    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
+      <text style="font-size: 64px;">🔒</text>
+    </view>
+    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
+    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能收藏物料哦~</text>
+    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
+      立即登录
+    </view>
+  </view>
+
+  <!-- 已登录状态 -->
+  <view wx:else>
+    <view class="page-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <view class="header-text">
+        <text class="page-title title-serif" style="font-size: 30px; font-weight: bold;">专属收藏夹</text>
+        <text class="page-subtitle" style="font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 4rpx; display: block;">Starlight collection</text>
+      </view>
+      <view bindtap="onAddCollection" class="add-btn">
+        <text class="add-text">+</text>
+      </view>
+    </view>
+
+    <view class="category-tabs" style="display: flex; align-items: center; gap: 8rpx; margin-top: 24rpx; overflow-x: auto; padding-bottom: 8rpx;">
+      <block wx:for="{{categories}}" wx:key="*this">
+        <view 
+          class="tab-item {{selectedCategory === item ? 'active' : ''}}" 
+          bindtap="onCategorySelect" 
+          data-category="{{item}}"
+          style="padding: 8rpx 16rpx; border-radius: 16rpx; font-size: 12px; font-weight: bold; white-space: nowrap; border: 1rpx solid {{selectedCategory === item ? '#1e293b' : '#f1f5f9'}}; background: {{selectedCategory === item ? '#1e293b' : 'white'}}; color: {{selectedCategory === item ? 'white' : '#94a3b8'}}; {{selectedCategory === item ? 'box-shadow: 0 4rpx 6rpx -1rpx rgba(0,0,0,0.1); transform: scale(1.05);' : ''}}"
+        >
+          {{item}}
+        </view>
+      </block>
+    </view>
+
+    <view class="collection-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 24rpx;">
+      <block wx:for="{{filteredCollections}}" wx:key="id">
+        <view class="collection-item" bindtap="onItemClick" data-item="{{item}}" style="position: relative; aspect-ratio: 1/1; border-radius: 32rpx; overflow: hidden; border: 1rpx solid white;">
+          <image src="{{item.imageUrl}}" mode="aspectFill" style="width: 100%; height: 100%;" />
+          <view class="item-overlay" style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%, transparent 100%); opacity: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 16rpx;">
+            <text class="item-category" style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 4rpx;">{{item.category}}</text>
+            <view class="item-bottom" style="display: flex; align-items: center; justify-content: space-between;">
+              <text class="item-date" style="font-size: 10px; color: white; font-family: 'Courier New', monospace;">{{item.createdAt}}</text>
+              <view class="item-actions" style="display: flex; gap: 8rpx;">
+                <view class="action-heart" style="width: 24rpx; height: 24rpx; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; color: #ec4899;">
+                  <text style="font-size: 12px;">💗</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:if="{{item.notes}}" class="note-dot" style="position: absolute; top: 16rpx; left: 16rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: #f472b6; box-shadow: 0 0 0 8rpx rgba(244,114,182,0.2);" />
+        </view>
+      </block>
+
+      <view wx:if="{{filteredCollections.length === 0}}" class="empty-state" style="grid-column: span 2; padding: 120rpx 40rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <view class="empty-icon-wrapper" style="width: 120rpx; height: 120rpx; border-radius: 50%; background: #fff5f7; display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx;">
+          <text style="font-size: 60rpx;">🖼️</text>
+        </view>
+        <text class="empty-text-main" style="font-size: 32rpx; font-weight: bold; color: #1e293b; margin-bottom: 12rpx;">该分类下还没有收藏哦。</text>
+        <text class="empty-text-tip" style="font-size: 24rpx; color: #94a3b8; line-height: 1.6; max-width: 480rpx;">点击右上角+号，将你珍藏的神图、小卡按照分类--归档吧</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情弹窗 -->
+  <view wx:if="{{showDetail}}" class="detail-mask" bindtap="closeDetail" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;">
+    <view class="detail-content" catchtap="" style="width: 90%; max-height: 85vh; background: white; border-radius: 40rpx; overflow: hidden; animation: slideUp 0.3s ease;">
+      <view class="detail-image-wrapper" style="position: relative; width: 100%; aspect-ratio: 1/1;">
+        <image src="{{currentDetail.imageUrl}}" mode="aspectFit" style="width: 100%; height: 100%;" />
+        <view class="close-btn" bindtap="closeDetail" style="position: absolute; top: 24rpx; right: 24rpx; width: 64rpx; height: 64rpx; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+          <text style="color: white; font-size: 32rpx; line-height: 1;">✕</text>
+        </view>
+        <view class="detail-badge" style="position: absolute; bottom: 24rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 9999rpx; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+          <text style="color: white; font-size: 24rpx; font-weight: bold; text-transform: uppercase;">{{currentDetail.category}}</text>
+        </view>
+      </view>
+      
+      <view class="detail-info" style="padding: 32rpx;">
+        <view class="detail-date" style="color: #94a3b8; font-size: 24rpx; font-family: 'Courier New', monospace; margin-bottom: 16rpx;">{{currentDetail.createdAt}}</view>
+        <view wx:if="{{currentDetail.tagList && currentDetail.tagList.length > 0}}" class="detail-tags" style="margin-bottom: 24rpx;">
+          <view class="tags-label" style="font-size: 22rpx; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 12rpx;">🏷️ 标签</view>
+          <view class="tags-list" style="display: flex; flex-wrap: wrap; gap: 12rpx;">
+            <text class="tag-chip" wx:for="{{currentDetail.tagList}}" wx:key="*this" style="padding: 8rpx 20rpx; background: linear-gradient(135deg, #fff0f5, #ffe4ec); border-radius: 9999rpx; font-size: 22rpx; color: #ec4899; font-weight: bold;">{{item}}</text>
+          </view>
+        </view>
+        <view wx:if="{{currentDetail.notes}}" class="detail-notes" style="background: #fff5f7; border-radius: 24rpx; padding: 24rpx;">
+          <view class="notes-label" style="font-size: 22rpx; color: #f472b6; font-weight: bold; text-transform: uppercase; margin-bottom: 12rpx;">💭 心动笔记</view>
+          <text class="notes-text" style="color: #475569; font-size: 28rpx; line-height: 1.8; white-space: pre-wrap;">{{currentDetail.notes}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

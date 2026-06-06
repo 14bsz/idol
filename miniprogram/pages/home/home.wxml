@@ -1,0 +1,167 @@
+<view class="container" style="padding: 24px; padding-bottom: 96px;">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
+    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
+      <text style="font-size: 64px;">🔒</text>
+    </view>
+    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
+    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能记录你的追星时光哦~</text>
+    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
+      立即登录
+    </view>
+  </view>
+
+  <!-- 空状态（已登录但无爱豆） -->
+  <view wx:elif="{{!currentIdol}}" class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80rpx 24rpx; text-align: center;">
+    <view class="empty-icon" style="width: 120rpx; height: 120rpx; border-radius: 50%; background: #fce4ec; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx;">
+      <text style="font-size: 48px;">✨</text>
+    </view>
+    <text class="empty-title" style="font-size: 20px; font-weight: bold; color: #1e293b; margin-bottom: 12rpx;">还没有添加爱豆</text>
+    <text class="empty-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 32rpx;">开始记录你的追星时光吧</text>
+    <view class="add-idol-btn" bindtap="onAddFirstIdol" style="padding: 20rpx 48rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 16px; font-weight: bold; box-shadow: 0 8rpx 24rpx -8rpx rgba(236, 72, 153, 0.5);">
+      添加第一个爱豆
+    </view>
+  </view>
+
+  <!-- 有数据时的内容 -->
+  <view wx:else>
+    <!-- 爱豆横幅卡片 -->
+  <view class="banner-container" style="position: relative; height: 576rpx; border-radius: 48rpx; overflow: hidden;">
+    <image 
+      src="{{currentIdol.bannerImage || 'https://picsum.photos/1000/500?random=15'}}" 
+      class="banner-image" 
+      mode="aspectFill"
+      style="width: 100%; height: 100%;"
+    />
+    <view class="banner-overlay" bindtap="onBannerClick" style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);">
+      <view class="hover-hint" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0;">
+        <view style="background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); padding: 24rpx 48rpx; border-radius: 9999rpx; display: flex; align-items: center; gap: 16rpx;">
+          <text style="color: white; font-size: 28rpx; font-weight: bold;">点击管理</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 爱豆信息 -->
+    <view class="idol-info" style="position: absolute; bottom: 48rpx; left: 48rpx; right: 48rpx; display: flex; align-items: flex-end; justify-content: space-between;">
+      <view class="idol-info-left" style="display: flex; align-items: center; gap: 32rpx;">
+        <view class="avatar" style="width: 160rpx; height: 160rpx; border-radius: 50%; border: 8rpx solid rgba(255,255,255,0.3); overflow: hidden; backdrop-filter: blur(16rpx);">
+          <image src="{{currentIdol.avatar}}" mode="aspectFill" style="width: 100%; height: 100%;" />
+        </view>
+        <view class="idol-name-info" style="color: white;">
+          <view class="idol-name" style="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 48rpx; font-weight: bold;">{{currentIdol.name}}</view>
+          <view class="idol-tags" style="display: flex; align-items: center; gap: 16rpx; margin-top: 8rpx;">
+            <view class="idol-nickname" style="font-size: 20rpx; opacity: 0.9; padding: 8rpx 16rpx; border-radius: 9999rpx; background: rgba(255,255,255,0.2); backdrop-filter: blur(16rpx);">
+              {{currentIdol.nickname || 'My Star'}}
+            </view>
+            <view class="idol-color" style="width: 24rpx; height: 24rpx; border-radius: 50%; border: 4rpx solid rgba(255,255,255,0.5); background-color: {{currentIdol.supportColor}};" />
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 32rpx; margin-top: 48rpx;">
+      <view class="stat-card glass shadow-soft" style="padding: 40rpx; border-radius: 32rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-top: 2rpx solid rgba(255,255,255,0.4);">
+        <view class="stat-icon" style="width: 80rpx; height: 80rpx; border-radius: 50%; background: #fce4ec; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx;">
+          <text style="font-size: 40rpx;">💗</text>
+        </view>
+        <text class="stat-label" style="font-size: 20rpx; color: #64748b; text-transform: uppercase; letter-spacing: 0.2em; font-weight: bold;">已入坑</text>
+        <view class="stat-value" style="display: flex; align-items: baseline; gap: 8rpx;">
+          <text style="font-family: 'Courier New', monospace; font-size: 60rpx; font-weight: bold; color: #1e293b;">{{daysInLove}}</text>
+          <text style="font-size: 24rpx; color: #94a3b8; font-weight: bold;">天</text>
+        </view>
+      </view>
+
+      <view class="stat-card glass shadow-soft" style="padding: 40rpx; border-radius: 32rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-top: 2rpx solid rgba(255,255,255,0.4);">
+        <view class="stat-icon" style="width: 80rpx; height: 80rpx; border-radius: 50%; background: #f3e5f5; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx;">
+          <text style="font-size: 40rpx;">⏰</text>
+        </view>
+        <text class="stat-label" style="font-size: 20rpx; color: #64748b; text-transform: uppercase; letter-spacing: 0.2em; font-weight: bold;">时光记录</text>
+        <view class="stat-value" style="display: flex; align-items: baseline; gap: 8rpx;">
+          <text style="font-family: 'Courier New', monospace; font-size: 60rpx; font-weight: bold; color: #1e293b;">{{diaryCount}}</text>
+          <text style="font-size: 24rpx; color: #94a3b8; font-weight: bold;">篇</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 重要日程 -->
+    <view class="anniversary-section glass shadow-soft" style="padding: 48rpx; border-radius: 48rpx; margin-top: 48rpx; border-top: 2rpx solid rgba(255,255,255,0.4);">
+      <view class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 48rpx;">
+        <view class="section-title" style="display: flex; align-items: center; gap: 24rpx;">
+          <view class="title-accent" style="width: 16rpx; height: 64rpx; background: #f9a8d4; border-radius: 9999rpx;" />
+          <text class="title-serif" style="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 40rpx; font-weight: bold;">重要日程</text>
+        </view>
+        <view class="see-all" bindtap="onAnniversaryClick" style="display: flex; align-items: center; gap: 8rpx; font-size: 24rpx; font-weight: bold; color: #f472b6;">
+          <text>全部</text>
+          <text>›</text>
+        </view>
+      </view>
+
+      <view class="anniversary-list" style="display: flex; flex-direction: column; gap: 32rpx;">
+        <block wx:for="{{anniversaries}}" wx:key="title">
+          <view class="anniversary-item" bindtap="onAnniversaryClick" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.6); padding: 32rpx; border-radius: 32rpx;">
+            <view class="item-left" style="display: flex; align-items: center; gap: 32rpx;">
+              <view class="day-badge" style="width: 96rpx; height: 96rpx; border-radius: 24rpx; background: {{item.displayColor}}; display: flex; align-items: center; justify-content: center; color: white; font-family: Georgia, 'Times New Roman', Times, serif; font-size: 40rpx; font-weight: bold; text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);">
+                {{item.iconText || item.title[0] || '纪'}}
+              </view>
+              <view class="item-info">
+                <text class="item-title" style="font-size: 28rpx; font-weight: bold; color: #334155; display: block;">{{item.title}}</text>
+                <text class="item-subtitle" style="font-size: 18rpx; color: #94a3b8; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8rpx; margin-top: 8rpx;">
+                  <text wx:if="{{item.days === 0}}" style="color: #f472b6; font-weight: bold;">🎉 今天</text>
+                  <text wx:elif="{{item.days <= 7}}" style="color: #ec4899; font-weight: bold;">⏰ 倒计时</text>
+                  <text wx:else style="color: #94a3b8;">📅 纪念日</text>
+                </text>
+              </view>
+            </view>
+            <view class="item-right" style="text-align: right; min-width: 180rpx;">
+              <view class="days-count" style="display: flex; align-items: baseline; justify-content: flex-end; gap: 4rpx; color: #ec4899;">
+                <text wx:if="{{item.days === 0}}" style="font-size: 32rpx; font-family: 'Courier New', monospace; font-weight: bold;">今天!</text>
+                <text wx:elif="{{item.days === 1}}" style="font-size: 32rpx; font-family: 'Courier New', monospace; font-weight: bold;">明天!</text>
+                <block wx:else>
+                  <text style="font-size: 20rpx; font-weight: bold;">D-</text>
+                  <text style="font-size: 48rpx; font-family: 'Courier New', monospace; font-weight: bold;">{{item.days}}</text>
+                </block>
+              </view>
+              <text class="date-label" style="font-size: 20rpx; color: #94a3b8; margin-top: 8rpx; display: block; font-weight: bold;">{{item.label}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 管理菜单弹窗 -->
+    <view wx:if="{{showMenu}}" class="menu-overlay" bindtap="onCloseMenu" style="position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 48rpx;">
+      <view class="menu-modal" catchtap="stopPropagation" style="width: 100%; max-width: 512rpx; background: white; border-radius: 48rpx; overflow: hidden; box-shadow: 0 50rpx 100rpx -24rpx rgba(0,0,0,0.25);">
+        <view class="menu-header" style="padding: 32rpx; border-bottom: 2rpx solid #fce4ec;">
+          <text class="menu-title" style="font-weight: bold; color: #1e293b; text-align: center; display: block; font-size: 32rpx;">管理爱豆</text>
+        </view>
+        <view class="menu-body" style="padding: 16rpx;">
+          <view class="menu-item" bindtap="onSwitchIdol" style="width: 100%; padding: 24rpx 32rpx; display: flex; align-items: center; gap: 24rpx; border-radius: 32rpx;">
+            <view class="menu-item-icon" style="width: 80rpx; height: 80rpx; border-radius: 50%; background: #fce4ec; display: flex; align-items: center; justify-content: center;">
+              <text style="font-size: 40rpx;">📈</text>
+            </view>
+            <view class="menu-item-text">
+              <text style="font-weight: bold; color: #334155; font-size: 28rpx; display: block;">切换/添加爱豆</text>
+              <text style="font-size: 20rpx; color: #94a3b8;">管理您的心动列表</text>
+            </view>
+          </view>
+          <view class="menu-item" bindtap="onChangeBanner" style="width: 100%; padding: 24rpx 32rpx; display: flex; align-items: center; gap: 24rpx; border-radius: 32rpx; margin-top: 8rpx;">
+            <view class="menu-item-icon" style="width: 80rpx; height: 80rpx; border-radius: 50%; background: #f3e5f5; display: flex; align-items: center; justify-content: center;">
+              <text style="font-size: 40rpx;">📷</text>
+            </view>
+            <view class="menu-item-text">
+              <text style="font-weight: bold; color: #334155; font-size: 28rpx; display: block;">更换壁纸</text>
+              <text style="font-size: 20rpx; color: #94a3b8;">上传新的壁纸照片</text>
+            </view>
+          </view>
+        </view>
+        <view class="menu-footer" style="padding: 16rpx; border-top: 2rpx solid #fce4ec;">
+          <view class="menu-cancel-btn" bindtap="onCloseMenu" style="width: 100%; padding: 24rpx 32rpx; border-radius: 32rpx; background: #f1f5f9; color: #64748b; font-weight: bold; font-size: 28rpx; text-align: center;">
+            取消
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

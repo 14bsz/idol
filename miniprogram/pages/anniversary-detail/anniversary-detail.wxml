@@ -1,0 +1,128 @@
+<view class="container">
+  <view wx:if="{{anniversaryDetail}}" class="page-shell">
+    <view class="header">
+      <view class="header-left" bindtap="goBack">
+        <text class="back-icon">‹</text>
+      </view>
+      <view class="header-title">纪念日详情</view>
+      <view class="header-right">
+        <view class="more-btn" bindtap="onMore">
+          <image class="more-icon" src="/images/more.svg" mode="aspectFit" />
+        </view>
+      </view>
+    </view>
+
+    <scroll-view class="content-scroll" scroll-y="true">
+      <view class="content-inner">
+        <view class="memory-card">
+          <view class="memory-cover" bindtap="onChangeCover">
+            <image class="memory-cover-image" src="{{backgroundImage}}" mode="aspectFill" />
+            <view class="memory-cover-overlay"></view>
+            <view class="cover-hint">
+              <text>📷 点击更换封面</text>
+            </view>
+            <view class="memory-cover-tags">
+              <text class="memory-tag">{{anniversaryDetail.typeText}}</text>
+              <text class="memory-tag soft-memory-tag">{{currentIdol.name}}</text>
+            </view>
+            <view class="memory-badge" style="{{anniversaryDetail.badgeStyle}}">
+              {{anniversaryDetail.iconText}}
+            </view>
+          </view>
+
+          <view class="memory-body">
+            <view class="countdown-wrap">
+              <text class="countdown-caption">纪念日倒计时</text>
+              <view class="countdown-main">
+                <text class="countdown-num">{{anniversaryDetail.days}}</text>
+                <text class="countdown-unit">天</text>
+              </view>
+              <text class="countdown-hint">下一次发生在 {{displayFullDate}}</text>
+            </view>
+
+            <view class="memory-title-block">
+              <text class="memory-title">{{anniversaryDetail.title}}</text>
+              <text class="memory-note">{{anniversaryDetail.noteText}}</text>
+            </view>
+
+            <view class="memory-meta-grid">
+              <view class="meta-chip">
+                <text class="meta-label">分类</text>
+                <text class="meta-value">{{anniversaryDetail.categoryText}}</text>
+              </view>
+              <view class="meta-chip">
+                <text class="meta-label">展示日期</text>
+                <text class="meta-value">{{anniversaryDetail.label}}</text>
+              </view>
+              <view class="meta-chip">
+                <text class="meta-label">提醒周期</text>
+                <text class="meta-value">每年重复</text>
+              </view>
+            </view>
+
+            <view class="memory-divider">
+              <view class="divider-dot"></view>
+              <view class="divider-line"></view>
+              <view class="divider-dot"></view>
+            </view>
+
+            <view class="reminder-list">
+              <view class="reminder-item">
+                <view class="reminder-copy">
+                  <text class="reminder-name">微信服务通知提醒</text>
+                  <text class="reminder-desc">到期当天 09:00 通过微信发送消息</text>
+                </view>
+                <switch class="reminder-switch" checked="{{reminderStatus.wechatReminder}}" catchchange="onWechatReminderToggle" color="#ec4899" />
+              </view>
+              <view class="reminder-item">
+                <view class="reminder-copy">
+                  <text class="reminder-name">系统日历提醒</text>
+                  <text class="reminder-desc">加入手机日历，关闭后需手动删除</text>
+                </view>
+                <switch class="reminder-switch" checked="{{reminderStatus.calendarReminder}}" catchchange="onCalendarReminderToggle" color="#ec4899" />
+              </view>
+            </view>
+
+            <view class="action-bar">
+              <view class="action-btn secondary-btn" bindtap="onEdit">编辑</view>
+              <button class="action-btn primary-btn" open-type="share">分享</button>
+              <view wx:if="{{anniversaryDetail.isCustom}}" class="action-btn danger-btn" bindtap="onDelete">删除</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{showEditModal}}" class="modal-overlay" bindtap="onCloseModal">
+    <view class="modal-content" catchtap="stopPropagation" catchtouchmove="stopPropagation">
+      <view class="modal-header">
+        <view class="modal-title">编辑纪念日</view>
+        <view class="modal-close" bindtap="onCloseModal">
+          <text>x</text>
+        </view>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">纪念日名称</text>
+          <input class="form-input" placeholder="例如：演唱会当天" value="{{newAnniversary.title}}" bindinput="onTitleInput" bindblur="onTitleInput" disabled="{{!anniversaryDetail.isCustom}}" style="{{!anniversaryDetail.isCustom ? 'color: #94a3b8; background: #f8fafc' : ''}}" />
+        </view>
+        <view class="form-item" wx:if="{{anniversaryDetail.isCustom}}">
+          <text class="form-label">自定义图标（选填）</text>
+          <input class="form-input" placeholder="只能写1个字，例如：演" value="{{newAnniversary.iconText}}" bindinput="onIconTextInput" bindblur="onIconTextInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">日期</text>
+          <picker mode="date" value="{{newAnniversary.date}}" bindchange="onDateInput">
+            <view class="form-input picker">{{newAnniversary.date || '请选择日期'}}</view>
+          </picker>
+        </view>
+
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="onCloseModal">取消</view>
+        <view class="btn-save" bindtap="onSaveAnniversary">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

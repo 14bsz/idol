@@ -1,0 +1,172 @@
+<view class="container">
+  <header class="header">
+    <view class="header-left" bindtap="onBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title">时光轴</view>
+    <view class="header-right"></view>
+  </header>
+
+  <main class="main">
+    <view wx:if="{{timelineSummary.totalEntries > 0}}" class="hero-card">
+      <view class="hero-badge">时光档案</view>
+      <view class="hero-title">{{currentIdol.name}} 的时光轴</view>
+      <view class="hero-desc">像翻相册一样，按年份回看你的每一次心动记录。</view>
+      <view class="hero-stats">
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{timelineSummary.totalYears}}</text>
+          <text class="hero-stat-label">年份</text>
+        </view>
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{timelineSummary.totalEntries}}</text>
+          <text class="hero-stat-label">记录</text>
+        </view>
+        <view class="hero-stat">
+          <text class="hero-stat-value">{{timelineSummary.totalImages}}</text>
+          <text class="hero-stat-label">图片</text>
+        </view>
+      </view>
+      <view class="hero-footer">
+        <text class="hero-footer-text">最近更新 {{timelineSummary.latestDate}}</text>
+        <text class="hero-footer-text">{{timelineSummary.topMoodText}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{yearOptions.length > 0}}" class="year-filter-panel">
+      <view class="year-filter-header">
+        <view>
+          <view class="panel-title">年份选择</view>
+          <view class="panel-subtitle">筛选某一年，回看当年的记忆片段</view>
+        </view>
+        <picker mode="selector" range="{{yearFilterOptions}}" value="{{yearFilterIndex}}" bindchange="onYearFilterChange">
+          <view class="summary-badge picker-badge">{{selectedYearSummary.label}}</view>
+        </picker>
+      </view>
+
+      <scroll-view scroll-x class="year-scroll">
+        <view class="year-chip-list">
+          <view class="year-chip {{selectedYear === 'all' ? 'active' : ''}}" bindtap="selectYear" data-year="all">
+            <text class="year-chip-text">全部</text>
+          </view>
+          <block wx:for="{{yearOptions}}" wx:key="year">
+            <view class="year-chip {{selectedYear === item.year ? 'active' : ''}}" bindtap="selectYear" data-year="{{item.year}}">
+              <text class="year-chip-text">{{item.year}}</text>
+              <text class="year-chip-count">{{item.count}}</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <view class="year-summary-row">
+        <view class="summary-pill">
+          <text class="summary-pill-label">记录</text>
+          <text class="summary-pill-value">{{selectedYearSummary.entryCount}}</text>
+        </view>
+        <view class="summary-pill">
+          <text class="summary-pill-label">图片</text>
+          <text class="summary-pill-value">{{selectedYearSummary.imageCount}}</text>
+        </view>
+        <view class="summary-pill mood">
+          <text class="summary-pill-label">主情绪</text>
+          <text class="summary-pill-value">{{selectedYearSummary.topMoodText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="timeline-shell">
+      <view wx:if="{{groupedEntries.length > 0}}" class="timeline-line"></view>
+
+      <view class="timeline-content">
+        <block wx:for="{{groupedEntries}}" wx:key="year">
+          <view class="year-group">
+            <view class="year-header {{selectedYear !== 'all' ? 'single-year' : ''}}" bindtap="toggleYear" data-year="{{item.year}}">
+              <view class="year-dot"></view>
+              <view class="year-button">
+                <view class="year-button-main">
+                  <view class="year-icon-wrap">
+                    <text class="year-icon">📅</text>
+                  </view>
+                  <view class="year-text-wrap">
+                    <text class="year-text">{{item.year}} 年</text>
+                    <text class="year-meta">{{item.entryCount}} 条记录 · {{item.imageCount}} 张图片 · {{item.topMoodText}}</text>
+                  </view>
+                </view>
+                <text wx:if="{{selectedYear === 'all'}}" class="year-arrow {{collapsedYears.includes(item.year) ? 'collapsed' : ''}}">▼</text>
+              </view>
+            </view>
+
+            <view wx:if="{{selectedYear !== 'all' || !collapsedYears.includes(item.year)}}" class="year-entries">
+              <block wx:for="{{item.entries}}" wx:key="id" wx:for-item="entry">
+                <view class="timeline-entry">
+                  <view class="entry-dot {{entry.mood}}"></view>
+                  <view class="entry-card {{entry.cardType}}">
+                    <view class="entry-card-top">
+                      <view class="entry-date-wrap">
+                        <text class="entry-date">{{entry.displayDate}}</text>
+                        <text class="entry-month">{{entry.monthLabel}}</text>
+                      </view>
+                      <view class="entry-mood-badge">
+                        <text class="mood-emoji">{{entry.moodEmoji}}</text>
+                        <text class="mood-badge-text">{{entry.moodText}}</text>
+                      </view>
+                    </view>
+
+                    <view wx:if="{{entry.tags && entry.tags.length > 0}}" class="entry-tags">
+                      <block wx:for="{{entry.tags}}" wx:key="*this" wx:for-item="tag">
+                        <view class="tag">{{tag}}</view>
+                      </block>
+                    </view>
+
+                    <view wx:if="{{entry.cardType === 'large' || entry.cardType === 'medium'}}" class="entry-images {{entry.cardType}}">
+                      <block wx:for="{{entry.images}}" wx:key="index" wx:for-item="img">
+                        <image src="{{img.url || img}}" class="entry-image {{entry.cardType}}" mode="aspectFill" />
+                      </block>
+                    </view>
+
+                    <view class="entry-content">
+                      <text>{{entry.content}}</text>
+                    </view>
+
+                    <view wx:if="{{(entry.cardType === 'small-image' || entry.cardType === 'default' || entry.cardType === 'highlight') && entry.images && entry.images.length > 0}}" class="entry-images small">
+                      <block wx:for="{{entry.images}}" wx:key="index" wx:for-item="img" wx:for-index="imageIndex">
+                        <image wx:if="{{imageIndex < 3}}" src="{{img.url || img}}" class="entry-image small" mode="aspectFill" />
+                      </block>
+                    </view>
+
+                    <view class="entry-footer">
+                      <view class="footer-stats">
+                        <view wx:if="{{entry.tags && entry.tags.length > 0}}" class="stat-item">
+                          <text class="stat-icon">🏷️</text>
+                          <text>{{entry.tags.length}} 个标签</text>
+                        </view>
+                        <view wx:if="{{entry.images && entry.images.length > 0}}" class="stat-item">
+                          <text class="stat-icon">🖼️</text>
+                          <text>{{entry.images.length}} 张图片</text>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </block>
+            </view>
+          </view>
+        </block>
+
+        <view wx:if="{{groupedEntries.length > 0 && currentIdol}}" class="start-marker">
+          <view class="start-dot"></view>
+          <view class="start-card">
+            <view class="start-label">时光起始</view>
+            <view class="start-date">{{currentIdol.entryDate}}</view>
+            <view class="start-text">与 {{currentIdol.name}} 的故事开始了</view>
+          </view>
+        </view>
+
+        <view wx:if="{{groupedEntries.length === 0}}" class="empty-state">
+          <view class="empty-icon">✨</view>
+          <view class="empty-title">还没有时光记录</view>
+          <view class="empty-desc">先去写下今天的追星心情，这里会按年份自动生成你的时光轴。</view>
+        </view>
+      </view>
+    </view>
+  </main>
+</view>

@@ -1,0 +1,102 @@
+<view class="container">
+  <view class="overlay" bindtap="onClose"></view>
+  
+  <view class="content">
+    <view class="header">
+      <view class="close-btn" bindtap="onClose">
+        <image style="width: 40rpx; height: 40rpx;" src="/images/x.svg" mode="aspectFit" />
+      </view>
+    </view>
+
+    <!-- Card Preview Container -->
+    <view class="card-container">
+      <view 
+        class="card template-{{selectedTemplate.id}} {{selectedTemplate.bgColor}} {{selectedTemplate.textColor}}" 
+        id="cardCanvas"
+      >
+        <!-- Header -->
+        <view class="card-header">
+          <view class="header-left">
+            <view class="avatar">
+              <image src="{{idolAvatar || idol.avatar}}" class="avatar-img" mode="aspectFill" />
+            </view>
+            <view class="header-info">
+              <text class="with-text">WITH</text>
+              <text class="name-text">{{idol.name}}</text>
+            </view>
+          </view>
+          <image class="header-sparkles" src="/images/sparkles.svg" mode="aspectFit" />
+        </view>
+
+        <!-- Content Area -->
+        <view class="card-content">
+          <view wx:if="{{displayImage}}" class="card-image">
+            <image src="{{displayImage}}" class="image-img" mode="aspectFill" bindload="onCardImageLoad" binderror="onCardImageError" />
+            <view class="image-overlay"></view>
+            <view class="image-badge">TODAY'S PICK</view>
+          </view>
+          <view class="content-inner">
+            <view class="content-meta">
+              <text class="content-tag">IDOL MEMORY CARD</text>
+            </view>
+            <view class="divider">
+              <view class="divider-line"></view>
+              <image style="width: 24rpx; height: 24rpx; opacity: 0.4;" src="/images/heart.svg" mode="aspectFit" />
+              <view class="divider-line"></view>
+            </view>
+            <text class="content-text {{entry.template === 'serif' ? 'text-serif' : ''}}">"{{displayContent}}"</text>
+          </view>
+        </view>
+
+        <!-- Footer -->
+        <view class="card-footer">
+          <text class="date-text">{{displayDate}}</text>
+          <text class="brand-text">IDOL TIME DIARY • MEMORY CARD</text>
+        </view>
+
+        <!-- Decorative Background -->
+        <view wx:if="{{selectedTemplate.id === 'minimal-korean'}}" class="deco-bg"></view>
+        <view class="template-accent template-accent-top"></view>
+        <view class="template-accent template-accent-bottom"></view>
+      </view>
+    </view>
+
+    <!-- Controls -->
+    <view class="controls">
+      <view class="template-list">
+        <view 
+          wx:for="{{templates}}" 
+          wx:key="id"
+          class="template-btn {{selectedTemplate.id === item.id ? 'active' : ''}}"
+          bindtap="selectTemplate"
+          data-template="{{item}}"
+        >
+          {{item.name}}
+        </view>
+      </view>
+
+      <button 
+        class="save-btn {{isGenerating ? 'disabled' : ''}}"
+        bindtap="handleSave"
+        disabled="{{isGenerating}}"
+      >
+        <image class="save-icon" src="/images/download.svg" mode="aspectFit" />
+        <text class="save-text">{{isGenerating ? '生成中...' : '保存卡片'}}</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- Toast -->
+  <view wx:if="{{showToast}}" class="toast">
+    <view class="toast-icon">
+      <image style="width: 24rpx; height: 24rpx;" src="/images/sparkles.svg" mode="aspectFit" />
+    </view>
+    <text class="toast-text">卡片已成功保存到相册 ✨</text>
+  </view>
+
+  <canvas
+    id="saveCardCanvas"
+    type="2d"
+    class="save-canvas"
+  ></canvas>
+</view>

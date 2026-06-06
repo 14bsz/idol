@@ -1,0 +1,117 @@
+<view class="container">
+  <!-- 顶部栏 -->
+  <view class="header">
+    <view class="header-left" bindtap="onBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title">重要日程</view>
+    <view class="header-right"></view>
+  </view>
+
+  <!-- 列表区域 -->
+  <scroll-view scroll-y class="main-list">
+    <block wx:if="{{allAnniversaries.length > 0}}">
+      <view class="anniversary-card"
+            wx:for="{{allAnniversaries}}"
+            wx:key="id"
+            hover-class="card-hover"
+            bindtap="onCardClick"
+            data-id="{{item.id}}"
+            data-iscustom="{{item.isCustom}}">
+        <view class="card-left">
+          <view class="date-badge" style="background: {{item.color === 'pink' ? '#f9a8d4' : (item.color === 'lavender' ? '#e9d5ff' : '#87CEEB')}}; color: white">
+            {{item.iconText || item.title[0] || '纪'}}
+          </view>
+          <view class="info">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-date">{{item.label}}</text>
+          </view>
+        </view>
+        <view class="card-right">
+          <view class="days-info">
+            <text class="days-num">{{item.days}}</text>
+            <text class="days-unit">天后</text>
+          </view>
+          <image class="more-icon" src="/images/more.svg"></image>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty-state">
+      <text class="empty-text">还没有添加任何纪念日哦 ✨</text>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view class="add-section">
+      <view class="add-btn" bindtap="onAddClick">
+        <text>+</text>
+        <text>添加纪念日</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 添加弹窗 -->
+  <view wx:if="{{showAddModal}}" class="modal-overlay" bindtap="onCloseModal">
+    <view class="modal-content" catchtap="stopPropagation" catchtouchmove="stopPropagation">
+      <view class="modal-header">
+        <view class="modal-title">{{editingBuiltInId || newAnniversary.id ? '编辑纪念日' : '新建纪念日'}}</view>
+        <view class="modal-close" bindtap="onCloseModal">
+          <text>x</text>
+        </view>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">纪念日名称</text>
+          <input class="form-input" placeholder="例如：演唱会当天" value="{{newAnniversary.title}}" bindinput="onTitleInput" bindblur="onTitleInput" disabled="{{editingBuiltInId ? true : false}}" style="{{editingBuiltInId ? 'color: #94a3b8; background: #f8fafc' : ''}}" />
+        </view>
+        <view class="form-item" wx:if="{{!editingBuiltInId}}">
+          <text class="form-label">自定义图标（选填）</text>
+          <input class="form-input" placeholder="只能写1个字，例如：演" value="{{newAnniversary.iconText}}" bindinput="onIconTextInput" bindblur="onIconTextInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">日期</text>
+          <picker mode="date" value="{{newAnniversary.date}}" bindchange="onDateInput">
+            <view class="form-input picker">{{newAnniversary.date || '请选择日期'}}</view>
+          </picker>
+        </view>
+
+        <!-- 提醒方式配置区域 -->
+        <view class="reminder-section">
+          <view class="reminder-header">
+            <text class="reminder-title">到期提醒配置</text>
+            <text class="reminder-subtitle">显示当前状态，开启即添加</text>
+          </view>
+
+          <view class="reminder-option" catchtap="stopPropagation">
+            <view class="reminder-info">
+              <view class="reminder-name">
+                <image class="reminder-icon" src="/images/wechat-icon.svg" wx:if="{{false}}"></image>
+                <text>微信服务通知提醒</text>
+              </view>
+              <text class="reminder-desc">到期当天 09:00 通过微信发送消息</text>
+            </view>
+            <view class="reminder-switch-wrap" catchtap="stopPropagation">
+              <switch class="reminder-switch" checked="{{newAnniversary.wechatReminder}}" catchchange="onWechatReminderChange" color="#ec4899" />
+            </view>
+          </view>
+
+          <view class="reminder-option" catchtap="stopPropagation">
+            <view class="reminder-info">
+              <view class="reminder-name">
+                <image class="reminder-icon" src="/images/calendar-icon.svg" wx:if="{{false}}"></image>
+                <text>系统日历提醒</text>
+              </view>
+              <text class="reminder-desc">加入手机日历，关闭后需手动删除</text>
+            </view>
+            <view class="reminder-switch-wrap" catchtap="stopPropagation">
+              <switch class="reminder-switch" checked="{{newAnniversary.calendarReminder}}" catchchange="onCalendarReminderChange" color="#ec4899" />
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="onCloseModal">取消</view>
+        <view class="btn-save" bindtap="onSaveAnniversary">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

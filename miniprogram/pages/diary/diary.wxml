@@ -1,0 +1,88 @@
+<view class="p-6 space-y-6 pb-24">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
+    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
+      <text style="font-size: 64px;">🔒</text>
+    </view>
+    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
+    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能写日记哦~</text>
+    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
+      立即登录
+    </view>
+  </view>
+
+  <!-- 已登录状态 -->
+  <view wx:else>
+    <view class="flex items-center justify-between">
+      <view>
+        <text class="font-serif text-3xl font-bold tracking-tight">时光日记</text>
+        <text class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Diary of starlight</text>
+      </view>
+      <view bindtap="onAddDiary" class="add-btn">
+        <text class="add-text">+</text>
+      </view>
+    </view>
+
+    <view class="space-y-8 relative">
+      <view class="absolute left-6 top-10 bottom-0 w-px bg-gradient-to-b" />
+
+      <block wx:for="{{diaries}}" wx:key="id" wx:for-index="idx">
+        <view class="pl-12 relative">
+          <view class="absolute dot-left top-1 dot-size rounded-full bg-white ring-4 z-10" />
+          
+          <view class="glass p-5 rounded-3xl shadow-soft space-y-4 border-t border-white-40 transition-transform" hover-class="card-hover">
+            <view class="flex items-center justify-between">
+              <view class="flex items-center gap-2">
+                <text class="text-xs font-mono font-bold text-slate-400">{{item.displayDate}}</text>
+                <view class="w-1 h-1 rounded-full bg-slate-300" />
+                <text class="text-xs uppercase font-bold text-slate-400 tracking-wider">{{item.moodText}}</text>
+              </view>
+              <view class="flex items-center gap-3">
+                <view catchtap="onShare" class="text-slate-400" style="margin-left: -16rpx;" data-index="{{idx}}">
+                  <image style="width: 32rpx; height: 32rpx;" src="/images/share.svg" mode="aspectFit" />
+                </view>
+                <view catchtap="onMore" class="text-slate-400" data-index="{{idx}}">
+                  <image style="width: 32rpx; height: 32rpx;" src="/images/more.svg" mode="aspectFit" />
+                </view>
+              </view>
+            </view>
+
+            <view bindtap="onEntryClick" class="space-y-4" data-index="{{idx}}">
+              <text class="text-sm text-slate-700 leading-relaxed font-light">{{item.content}}</text>
+              
+              <view wx:if="{{item.images && item.images.length > 0}}" class="grid gap-2 overflow-hidden diary-media-grid {{item.gridClass}}">
+                <block wx:for="{{item.images}}" wx:for-item="img" wx:for-index="idx" wx:key="*this">
+                  <view wx:if="{{idx < 3}}" class="relative overflow-hidden rounded-xl image-container media-frame" hover-class="image-hover">
+                    <image wx:if="{{!img.type || img.type === 'image'}}" src="{{img.url || img}}" class="w-full h-full media-image" mode="aspectFit" />
+                    <video wx:if="{{img.type === 'video'}}" src="{{img.url}}" class="w-full h-full media-image" object-fit="contain" show-center-play-btn="{{true}}" controls="{{false}}"></video>
+                    <view wx:if="{{img.type === 'video'}}" class="absolute top-2 left-2 px-2 py-1 bg-black/60 text-white text-xs rounded-full z-10">视频</view>
+                    <view wx:if="{{idx === 2 && item.images.length > 3}}" class="absolute inset-0 bg-black-40 flex items-center justify-center text-white font-bold text-sm">
+                      <text>+{{item.images.length - 3}}</text>
+                    </view>
+                  </view>
+                </block>
+              </view>
+            </view>
+
+            <view class="flex items-center gap-3 pt-2">
+              <view class="flex neg-space-x-1">
+                <view class="w-5 h-5 rounded-full bg-pink-100 flex items-center justify-center ring-2 ring-white">
+                  <text class="text-sm">💗</text>
+                </view>
+              </view>
+              <text class="text-xs text-slate-400">Recorded with love</text>
+            </view>
+          </view>
+        </view>
+      </block>
+      
+      <view wx:if="{{diaries.length === 0}}" class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
+        <view class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+          <text class="text-2xl opacity-20">🖼️</text>
+        </view>
+        <text class="text-sm italic">还没有写日记哦，快来记录心动瞬间吧 ✨</text>
+      </view>
+    </view>
+  </view>
+
+</view>

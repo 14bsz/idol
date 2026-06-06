@@ -1,0 +1,53 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/home/home",
+    "pages/diary/diary",
+    "pages/diary-detail/diary-detail",
+    "pages/collection/collection",
+    "pages/profile/profile",
+    "pages/diary-editor/diary-editor",
+    "pages/collection-add/collection-add",
+    "pages/switch-idol/switch-idol",
+    "pages/card-generator/card-generator",
+    "pages/report/report",
+    "pages/timeline/timeline",
+    "pages/anniversary/anniversary",
+    "pages/anniversary-detail/anniversary-detail"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FFC0CB",
+    "navigationBarTitleText": "爱豆时光日记",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFF5F5"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#94a3b8",
+    "selectedColor": "#ec4899",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "主页"
+      },
+      {
+        "pagePath": "pages/diary/diary",
+        "text": "日记"
+      },
+      {
+        "pagePath": "pages/collection/collection",
+        "text": "收藏"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "回顾"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

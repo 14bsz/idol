@@ -1,0 +1,104 @@
+<view class="page-container">
+  <header class="header">
+    <view class="header-left" bindtap="onBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title">追星月报</view>
+    <view class="header-right" bindtap="onShare">
+      <text class="share-icon">⤴</text>
+    </view>
+  </header>
+
+  <scroll-view class="report-content" scroll-y>
+    <!-- Hero Header -->
+    <view class="report-header">
+      <image class="idol-avatar" src="{{currentIdol.avatar}}" mode="aspectFill"></image>
+      <view class="report-title">{{stats.monthName}}的专属记忆</view>
+      <view class="report-subtitle">与 {{currentIdol.name}} 共同走过的闪亮日子</view>
+    </view>
+
+    <!-- Overview Stats -->
+    <view class="stats-overview">
+      <view class="stat-box">
+        <text class="stat-value">{{stats.activeDays}}</text>
+        <text class="stat-label">陪伴天数</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-value">{{stats.count}}</text>
+        <text class="stat-label">心动日记</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-value">{{stats.collectionCount}}</text>
+        <text class="stat-label">珍藏瞬间</text>
+      </view>
+    </view>
+
+    <!-- Content Sections -->
+    <view class="report-section">
+      <view class="section-title">
+        <image class="section-icon-svg" src="/images/monthly-mark.svg"></image>
+        <text>本月印记</text>
+      </view>
+      <view class="marks-container">
+        <view class="mood-wrap">
+          <view class="mood-icon mood-{{stats.topMood}}">{{stats.moodConfig.emoji}}</view>
+          <view class="mood-text">{{stats.moodConfig.text}}</view>
+        </view>
+        <view class="tags-wrap">
+          <text class="tags-label">高频词汇</text>
+          <view class="tags-list">
+            <text class="tag-item" wx:for="{{stats.topTags}}" wx:key="*this">#{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="report-section" wx:if="{{stats.bestMoments.length > 0}}">
+      <view class="section-title">
+        <image class="section-icon-svg" src="/images/best-moment.svg"></image>
+        <text>最佳瞬间</text>
+        <text class="count-badge">共 {{stats.imageCount}} 张</text>
+      </view>
+      <scroll-view class="photo-gallery" scroll-x enable-flex>
+        <image wx:for="{{stats.bestMoments}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="gallery-photo"></image>
+      </scroll-view>
+    </view>
+
+    <view class="report-section words-section">
+      <view class="section-title">
+        <image class="section-icon-svg" src="/images/time-letter.svg"></image>
+        <text>时光信签</text>
+      </view>
+      <view class="words-card">
+        <view class="words-summary">
+          <text>这个月，你用 <text class="highlight">{{stats.wordsCount}}</text> 个字</text>
+          <text class="newline-text">记录下了对 {{currentIdol.name}} 的点点滴滴。</text>
+        </view>
+        <view class="words-quote">
+          <text class="quote-mark">"</text>
+          {{stats.quote}}
+          <text class="quote-mark">"</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="report-section progress-section">
+      <view class="section-title">
+        <image class="section-icon-svg" src="/images/next-station.svg"></image>
+        <text>奔赴下一站</text>
+      </view>
+      <view class="milestone-card">
+        <view class="milestone-header">
+          <text class="milestone-title">{{progressData.nextTitle}}</text>
+          <text class="milestone-days">还剩 <text class="highlight">{{progressData.daysLeft}}</text> 天</text>
+        </view>
+        <view class="progress-track">
+          <view class="progress-fill" style="width: {{progressData.percent}}%"></view>
+        </view>
+        <view class="progress-desc">今年已走过 {{progressData.percent}}%</view>
+      </view>
+    </view>
+    
+    <view class="footer-spacer"></view>
+  </scroll-view>
+</view>

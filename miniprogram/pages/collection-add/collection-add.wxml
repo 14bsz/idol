@@ -1,0 +1,116 @@
+<view class="container" style="padding-top: {{totalNavHeight}}px;">
+  <view class="header" style="height: {{navHeight + navTop}}px; padding-top: {{navTop}}px;">
+    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight}}px;">
+      <text class="nav-icon">‹</text>
+    </view>
+    <view class="nav-title" style="line-height: {{navHeight}}px;">新增收藏</view>
+    <view class="nav-right" style="width: {{menuButtonWidth}}px; padding-right: {{menuButtonRight}}rpx;">
+      <!-- 保存按钮现在避开了胶囊 -->
+    </view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y="true">
+    <view class="content-inner">
+      <view class="category-section">
+        <text class="section-label">选择分类</text>
+        <view class="category-list">
+          <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categories}}" wx:key="*this" bindtap="selectCategory" data-category="{{item}}">
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <view class="image-section">
+        <text class="section-label">添加物料</text>
+        
+        <view class="image-preview" wx:if="{{imageUrl}}">
+          <image class="preview-image" src="{{imageUrl}}" mode="aspectFill"></image>
+          <view class="image-overlay" bindtap="clearImage">
+            <text class="overlay-text">点击更换</text>
+          </view>
+        </view>
+        
+        <view class="image-upload" wx:else bindtap="uploadImage">
+          <view class="upload-icon" wx:if="{{!isUploading}}">
+            <text class="icon">📷</text>
+          </view>
+          <view class="upload-loading" wx:else>
+            <text class="loading-icon">✨</text>
+            <text class="loading-text">正在冲印中...</text>
+          </view>
+          <view class="upload-text" wx:if="{{!isUploading}}">
+            <text class="text-main">点击上传神图/小卡</text>
+            <text class="text-sub">Supports JPG, PNG</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="url-section">
+        <view class="url-input-wrapper">
+          <text class="url-icon">🔗</text>
+          <input 
+            class="url-input" 
+            placeholder="或者在此粘贴图片 URL..." 
+            value="{{imageUrl}}" 
+            bindinput="onUrlInput"
+          />
+        </view>
+      </view>
+
+      <view class="notes-section">
+        <text class="section-label">心动笔记</text>
+        <textarea 
+          class="notes-input" 
+          placeholder="记录下收到这张卡时的心情吧..." 
+          value="{{notes}}" 
+          bindinput="onNotesInput"
+          maxlength="500"
+          auto-height
+        ></textarea>
+      </view>
+
+      <view class="tags-section">
+        <text class="section-label">专属标签</text>
+        <view class="tags-wrapper">
+          <view class="tag-item" wx:for="{{tags}}" wx:key="*this" wx:if="{{tags.length > 0}}">
+            <text class="tag-text">{{item}}</text>
+            <text class="tag-close" bindtap="removeTag" data-index="{{index}}">×</text>
+          </view>
+          <view class="tag-input-wrapper" wx:if="{{!showTagInput}}">
+            <text class="add-tag-icon" bindtap="showTagInputBox">+</text>
+          </view>
+          <view class="tag-input-box" wx:else>
+            <input 
+              class="tag-input" 
+              placeholder="输入标签，回车添加" 
+              value="{{tagInput}}" 
+              bindinput="onTagInput"
+              confirm-type="done"
+              bindconfirm="addTag"
+            />
+            <text class="tag-confirm" bindtap="addTag">添加</text>
+            <text class="tag-cancel" bindtap="hideTagInputBox">取消</text>
+          </view>
+        </view>
+        <view class="tag-suggestions" wx:if="{{tagSuggestions.length > 0 && showTagInput}}">
+          <text class="suggestion-title">常用标签：</text>
+          <view class="suggestion-list">
+            <text 
+              class="suggestion-item" 
+              wx:for="{{tagSuggestions}}" 
+              wx:key="*this"
+              bindtap="selectSuggestion"
+              data-tag="{{item}}"
+            >{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="bottom-action">
+        <button class="save-btn-large {{!imageUrl ? 'disabled' : ''}}" bindtap="saveCollection" disabled="{{!imageUrl}}">
+          确认保存
+        </button>
+      </view>
+    </view>
+  </scroll-view>
+</view>

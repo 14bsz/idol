@@ -1,0 +1,83 @@
+<view class="container">
+  <view class="header">
+    <view class="nav-left" bindtap="goBack">
+      <text class="nav-icon">‹</text>
+    </view>
+    <view class="nav-title">{{mode === 'edit' ? '编辑日记' : '写日记'}}</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y="true">
+    <view class="mood-section">
+      <text class="section-label">这一刻的情绪</text>
+      <view class="mood-list">
+        <view class="mood-item {{mood === item.id ? 'active' : ''}}" wx:for="{{moods}}" wx:key="id" bindtap="selectMood" data-id="{{item.id}}">
+          <text class="mood-icon">{{item.icon}}</text>
+          <text class="mood-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="content-section">
+      <textarea 
+        class="content-input" 
+        placeholder="记下这一刻的心动..." 
+        value="{{content}}" 
+        bindinput="onContentInput"
+        maxlength="1000"
+        auto-height
+      ></textarea>
+      <text class="char-count">{{content.length}}/1000</text>
+    </view>
+
+    <view class="image-section">
+      <view class="section-header">
+        <text class="section-label">精选物料 ({{totalMediaCount}}/9)</text>
+        <text class="section-tip">支持照片和视频</text>
+      </view>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this" wx:if="{{item.type !== 'video'}}">
+          <image class="image" src="{{item.url || item}}" mode="aspectFill"></image>
+          <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">
+            <text class="delete-icon">×</text>
+          </view>
+        </view>
+        <view class="image-item video-item" wx:for="{{images}}" wx:key="*this" wx:if="{{item.type === 'video'}}">
+          <video class="image" src="{{item.url}}" controls="{{false}}" show-center-play-btn="{{true}}" object-fit="cover"></video>
+          <view class="video-badge">视频</view>
+          <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">
+            <text class="delete-icon">×</text>
+          </view>
+        </view>
+        <view class="image-add" wx:if="{{totalMediaCount < 9}}" bindtap="showChooseMedia">
+          <text class="add-icon">📷</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="tag-section">
+      <text class="section-label">追星标签</text>
+      <view class="tag-list">
+        <view class="tag-item {{selectedTags.includes(item) ? 'active' : ''}}" wx:for="{{tags}}" wx:key="*this" bindtap="toggleTag" data-tag="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="template-section">
+      <text class="section-label">排版风格</text>
+      <view class="template-list">
+        <view class="template-item {{template === item.id ? 'active' : ''}}" wx:for="{{templates}}" wx:key="id" bindtap="selectTemplate" data-id="{{item.id}}">
+          {{item.name}}
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="footer">
+    <button class="save-btn {{!canSave ? 'disabled' : ''}}" bindtap="saveDiary" disabled="{{!canSave}}">
+      {{mode === 'edit' ? '发布' : '保存'}}
+    </button>
+  </view>
+</view>

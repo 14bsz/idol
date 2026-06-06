@@ -1,0 +1,125 @@
+<view class="container">
+  <!-- 顶部标题区 -->
+  <view class="page-header">
+    <view bindtap="{{showAddForm ? 'hideAddForm' : 'goBack'}}" class="back-btn">
+      <text>‹</text>
+    </view>
+    <view class="header-center">
+      <view class="header-title">{{showAddForm ? '编辑档案' : '我的爱豆'}}</view>
+      <text class="header-subtitle">{{showAddForm ? 'Fandom Memory' : 'My Idols Collection'}}</text>
+    </view>
+    <view class="header-right"></view>
+  </view>
+
+  <!-- 爱豆卡片列表 -->
+  <view wx:if="{{!showAddForm}}" class="idol-list">
+    <block wx:for="{{idols}}" wx:key="id">
+      <view class="idol-card" hover-class="card-hover" bindtap="switchIdol" data-id="{{item.id}}">
+        <view class="card-left">
+          <view class="avatar-container">
+            <image src="{{item.avatar}}" class="avatar" mode="aspectFill" />
+            <view wx:if="{{item.id === currentIdolId}}" class="active-badge">
+              <text>✓</text>
+            </view>
+          </view>
+          <view class="idol-info">
+            <view class="idol-name">{{item.name}}</view>
+            <view class="idol-nickname">@{{item.nickname || 'STAR'}}</view>
+          </view>
+        </view>
+        <view class="card-right">
+          <view catchtap="editIdol" data-id="{{item.id}}" class="edit-btn">
+            <text>✏️</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view wx:if="{{idols.length === 0}}" class="empty-state">
+      <view class="empty-icon">
+        <text>✨</text>
+      </view>
+      <text class="empty-title">还没有添加爱豆</text>
+      <text class="empty-desc">开始记录你的追星时光吧</text>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view class="add-section">
+      <view bindtap="showAddForm" class="add-btn">
+        <text>+</text>
+        <text>添加新爱豆</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑/添加表单 -->
+  <view wx:else class="form-container">
+    <view class="avatar-section">
+      <view class="avatar-wrapper">
+        <image src="{{newAvatar}}" class="form-avatar" mode="aspectFill" />
+        <view bindtap="onChooseAvatar" class="camera-btn">
+          <text>📷</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-fields">
+      <view class="field-group">
+        <text class="field-label">爱豆本名 / 艺名</text>
+        <input 
+          class="field-input" 
+          placeholder="例如：田柾国 / Jungkook" 
+          value="{{newName}}" 
+          bindinput="onNameInput"
+        />
+      </view>
+
+      <view class="field-group">
+        <text class="field-label">专属昵称</text>
+        <input 
+          class="field-input" 
+          placeholder="例如：果子 / JK" 
+          value="{{newNickname}}" 
+          bindinput="onNicknameInput"
+        />
+      </view>
+
+      <view class="field-group">
+        <text class="field-label">你的入坑日期</text>
+        <picker mode="date" value="{{newEntryDate}}" bindchange="onEntryDateChange">
+          <view class="field-input picker">
+            {{newEntryDate || '请选择日期'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="field-group">
+        <text class="field-label">生日</text>
+        <picker mode="date" value="{{newBirthday}}" bindchange="onBirthdayChange">
+          <view class="field-input picker">
+            {{newBirthday || '请选择'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="field-group">
+        <text class="field-label">出道日</text>
+        <picker mode="date" value="{{newDebutDate}}" bindchange="onDebutDateChange">
+          <view class="field-input picker">
+            {{newDebutDate || '请选择'}}
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="form-actions">
+      <view bindtap="hideAddForm" class="cancel-btn">
+        取消
+      </view>
+      <view bindtap="{{editingIdol ? 'updateIdol' : 'addIdol'}}" class="submit-btn">
+        {{editingIdol ? '保存修改' : '确认入坑'}}
+      </view>
+    </view>
+  </view>
+</view>

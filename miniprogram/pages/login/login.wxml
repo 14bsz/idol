@@ -1,0 +1,39 @@
+<view class="login-container">
+  <view class="login-content">
+    <view class="logo-section">
+      <view class="logo-icon">
+        <text>✨</text>
+      </view>
+      <text class="app-name">爱豆时光日记</text>
+      <text class="app-slogan">记录每一份心动时刻</text>
+    </view>
+
+    <view class="login-btn-section">
+      <button 
+        class="login-btn {{loading ? 'loading' : ''}}" 
+        bindtap="onWechatLogin"
+        disabled="{{loading}}"
+      >
+        <text wx:if="{{!loading}}">微信一键登录</text>
+        <text wx:else>登录中...</text>
+      </button>
+      
+      <text class="login-tip">登录即表示同意《用户协议》和《隐私政策》</text>
+    </view>
+
+    <view class="features-section">
+      <view class="feature-item">
+        <text class="feature-icon">💝</text>
+        <text class="feature-text">记录追星时光</text>
+      </view>
+      <view class="feature-item">
+        <text class="feature-icon">🎁</text>
+        <text class="feature-text">收藏美好瞬间</text>
+      </view>
+      <view class="feature-item">
+        <text class="feature-icon">📅</text>
+        <text class="feature-text">重要日程提醒</text>
+      </view>
+    </view>
+  </view>
+</view>

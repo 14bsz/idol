@@ -1,0 +1,49 @@
+<view class="container" style="padding: 24px; padding-bottom: 96px;">
+  <!-- 未登录状态 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
+    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
+      <text style="font-size: 64px;">🔒</text>
+    </view>
+    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
+    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能查看个人中心哦~</text>
+    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
+      立即登录
+    </view>
+  </view>
+
+  <!-- 已登录状态 -->
+  <view wx:else>
+    <view class="profile-header" style="display: flex; align-items: center; gap: 24rpx; padding: 24rpx; background: white; border-radius: 32rpx; box-shadow: 0 4rpx 24rpx -8rpx rgba(0,0,0,0.05);">
+      <view class="profile-avatar" bindtap="chooseAvatar" style="width: 100rpx; height: 100rpx; border-radius: 50%; background: #fce4ec; display: flex; align-items: center; justify-content: center; border: 4rpx solid white; box-shadow: 0 10rpx 30rpx -5rpx rgba(0,0,0,0.05); overflow: hidden;">
+        <text wx:if="{{!userInfo || !userInfo.avatarUrl}}" style="font-size: 40px; color: #f472b6;">👤</text>
+        <image wx:else src="{{resolvedAvatarUrl}}" style="width: 100%; height: 100%;" mode="aspectFill"></image>
+      </view>
+      <view class="profile-info" style="flex: 1;" bindtap="editNickname">
+        <text class="profile-name title-serif" style="font-size: 24px; font-weight: bold;">{{userInfo ? userInfo.nickname : '追星女孩'}}</text>
+        <text class="profile-desc" style="font-size: 12px; color: #94a3b8; margin-top: 4rpx; display: block;">✨ 正在记录心动时光</text>
+      </view>
+    </view>
+
+    <view class="menu-list" style="display: grid; grid-template-columns: 1fr; gap: 24rpx; margin-top: 40rpx;">
+      <block wx:for="{{menuItems}}" wx:key="title">
+        <view class="menu-item glass shadow-soft" bindtap="onMenuItemClick" data-index="{{index}}" style="padding: 30rpx 24rpx; border-radius: 24rpx; display: flex; align-items: center; gap: 24rpx; border-top: 1rpx solid rgba(255,255,255,0.4); background: white;">
+          <view class="menu-icon" style="width: 80rpx; height: 80rpx; border-radius: 20rpx; background: {{item.bgColor}}; display: flex; align-items: center; justify-content: center;">
+            <text style="font-size: 24px;">{{item.icon}}</text>
+          </view>
+          <view class="menu-text" style="flex: 1;">
+            <text class="menu-title" style="font-size: 16px; font-weight: bold; color: #334155; display: block; margin-bottom: 8rpx;">{{item.title}}</text>
+            <text class="menu-desc" style="font-size: 12px; color: #94a3b8;">{{item.desc}}</text>
+          </view>
+          <text class="menu-arrow" style="color: #cbd5e1; font-size: 20px;">›</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="footer-section" style="display: flex; flex-direction: column; align-items: center; gap: 24rpx; margin-top: 60rpx; padding-top: 40rpx;">
+      <view class="logout-btn" bindtap="onLogout" style="width: 100%; height: 88rpx; line-height: 88rpx; border-radius: 44rpx; background: #fef2f2; color: #dc2626; font-size: 16px; font-weight: bold; text-align: center; border: 1rpx solid #fecaca;">
+        🚪 退出登录
+      </view>
+      <text class="footer-text" style="font-size: 12px; color: #cbd5e1;">爱豆时光日记 v1.0.0 • 记录纯粹的爱</text>
+    </view>
+  </view>
+</view>

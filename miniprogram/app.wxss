@@ -1,0 +1,43 @@
+page {
+  background-color: #fff9f0;
+  background-image: radial-gradient(at 0% 0%, rgba(252, 228, 236, 0.4) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(243, 229, 245, 0.4) 0px, transparent 50%),
+                    radial-gradient(at 50% 100%, rgba(252, 228, 236, 0.3) 0px, transparent 50%);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* 玻璃拟态效果 */
+.glass {
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 柔和阴影 */
+.shadow-soft {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* 通用容器 */
+.container {
+  padding: 24px;
+  padding-bottom: 96px;
+}
+
+/* 标题样式 */
+.title-serif {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 700;
+}
+
+/* 圆角样式 */
+.rounded-2xl {
+  border-radius: 1.5rem;
+}
+
+.rounded-3xl {
+  border-radius: 2rem;
+}

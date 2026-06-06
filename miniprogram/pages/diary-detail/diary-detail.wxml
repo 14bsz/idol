@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="header" style="padding-top: {{navPaddingTop}}px;">
+    <view class="nav-left" bindtap="goBack">
+      <text class="nav-icon">‹</text>
+    </view>
+    <view class="nav-title">日记详情</view>
+    <view class="nav-right">
+      <view class="more-btn" bindtap="onMore">
+        <image class="more-icon" src="/images/more.svg" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y="true" style="width: 100%;">
+    <view class="diary-detail">
+      <view class="diary-header">
+        <view class="author-info">
+          <view class="avatar">
+            <text class="avatar-text">✨</text>
+          </view>
+          <view class="author-details">
+            <text class="author-name">追星日记</text>
+            <text class="post-time">{{displayDate}}</text>
+          </view>
+        </view>
+        <view class="mood-tag">
+          <text class="mood-icon">{{moodIcon}}</text>
+          <text class="mood-text">{{moodText}}</text>
+        </view>
+      </view>
+
+      <view class="diary-content">
+        <text class="content-text">{{diary.content}}</text>
+      </view>
+
+      <view class="diary-images" wx:if="{{diary.images && diary.images.length > 0}}">
+        <view class="image-grid {{imageGridClass}}">
+          <view class="image-item" wx:for="{{diary.images}}" wx:key="*this" wx:if="{{!item.type || item.type === 'image'}}" bindtap="previewImage" data-url="{{item.url || item}}" data-urls="{{imageUrls}}">
+            <image class="image" src="{{item.url || item}}" mode="aspectFit" />
+          </view>
+          <view class="image-item video-item" wx:for="{{diary.images}}" wx:key="*this" wx:if="{{item.type === 'video'}}">
+            <video class="image" src="{{item.url}}" controls="{{true}}" show-center-play-btn="{{true}}" object-fit="contain" enable-progress-gesture="{{true}}"></video>
+            <view class="video-badge">视频</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="diary-footer">
+        <view class="footer-info">
+          <text class="love-text">💗 Recorded with love</text>
+        </view>
+        <view class="action-buttons">
+          <view class="action-btn" bindtap="onShare">
+            <image class="action-icon" src="/images/share.svg" mode="aspectFit" />
+            <text class="action-text">分享</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
