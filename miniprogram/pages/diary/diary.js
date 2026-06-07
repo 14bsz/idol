@@ -157,12 +157,9 @@ Page({
       method: 'PUT',
       data: { pinned: newPinnedState ? 1 : 0 }
     }).then(() => {
-      // 更新本地数据
-      const globalDiary = app.globalData.diaries.find(d => d.id == diary.id);
-      if (globalDiary) {
-        globalDiary.pinned = newPinnedState;
-      }
-      
+      // 重新从后端获取数据（包含正确的排序）
+      return app.fetchDiariesFromServer();
+    }).then(() => {
       // 重新加载列表
       this.loadData();
       
