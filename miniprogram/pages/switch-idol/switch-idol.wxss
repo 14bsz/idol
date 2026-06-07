@@ -280,7 +280,8 @@ page {
 }
 
 .avatar-placeholder-icon {
-  font-size: 72rpx;
+  width: 100rpx;
+  height: 100rpx;
 }
 
 .camera-icon {
@@ -315,20 +316,22 @@ page {
   width: 100%;
   padding: 28rpx 28rpx;
   border-radius: 28rpx;
-  background: #f8fafc;
+  background: #ffffff;
   font-weight: 600;
   font-size: 28rpx;
   line-height: 1.5;
   color: #1e293b;
   font-family: sans-serif;
   box-sizing: border-box;
-  border: 2rpx solid transparent;
+  border: 2rpx solid #fce4ec;
   transition: border-color 0.2s;
   min-height: 88rpx;
 }
 
 .field-input.picker {
   color: #1e293b;
+  background: #ffffff;
+  border: 2rpx solid #fce4ec;
 }
 
 /* 按钮区域 */

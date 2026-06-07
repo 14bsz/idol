@@ -58,7 +58,7 @@
     <view class="avatar-section">
       <view class="avatar-wrapper">
         <view wx:if="{{!newAvatar}}" class="avatar-placeholder">
-          <text class="avatar-placeholder-icon">👤</text>
+          <image src="/images/avatar-placeholder.svg" class="avatar-placeholder-icon" mode="aspectFit" />
         </view>
         <image wx:else src="{{newAvatar}}" class="form-avatar" mode="aspectFill" />
         <view bindtap="onChooseAvatar" class="camera-btn">
