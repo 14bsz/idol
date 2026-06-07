@@ -20,7 +20,9 @@ public class DiaryService extends ServiceImpl<DiaryMapper, Diary> {
         if (idolId != null) {
             wrapper.eq(Diary::getIdolId, idolId);
         }
-        wrapper.orderByDesc(Diary::getCreatedAt);
+        // 先按置顶状态降序（1在前），再按创建时间降序（新的在前）
+        wrapper.orderByDesc(Diary::getPinned);
+        wrapper.orderByDesc(Diary::getCreateTime);
         return this.list(wrapper);
     }
 
