@@ -323,7 +323,8 @@ page {
   color: #1e293b;
   font-family: sans-serif;
   box-sizing: border-box;
-  border: 2rpx solid #fce4ec;
+  border: 2rpx solid #ffe4ec;
+  box-shadow: 0 4rpx 16rpx rgba(255, 105, 180, 0.08);
   transition: border-color 0.2s;
   min-height: 88rpx;
 }
@@ -331,7 +332,8 @@ page {
 .field-input.picker {
   color: #1e293b;
   background: #ffffff;
-  border: 2rpx solid #fce4ec;
+  border: 2rpx solid #ffe4ec;
+  box-shadow: 0 4rpx 16rpx rgba(255, 105, 180, 0.08);
 }
 
 /* 按钮区域 */
