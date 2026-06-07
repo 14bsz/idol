@@ -9,7 +9,7 @@ Page({
     editingIdol: null,
     newName: '',
     newNickname: '',
-    newAvatar: 'https://picsum.photos/400/400?random=7',
+    newAvatar: '',
     newEntryDate: '',
     newBirthday: '1997-09-01',
     newDebutDate: '2013-06-13'
@@ -60,7 +60,7 @@ Page({
       editingIdol: null,
       newName: '',
       newNickname: '',
-      newAvatar: 'https://picsum.photos/400/400?random=' + Date.now(),
+      newAvatar: '',
       newBirthday: '1997-09-01',
       newDebutDate: '2013-06-13'
     });
@@ -76,7 +76,7 @@ Page({
         editingIdol: idol,
         newName: idol.name || '',
         newNickname: idol.nickname || '',
-        newAvatar: idol.avatar || 'https://picsum.photos/400/400?random=' + Date.now(),
+        newAvatar: idol.avatar || '',
         newEntryDate: idol.entryDate || util.formatDate(new Date().toISOString()),
         newBirthday: idol.birthday || '1997-09-01',
         newDebutDate: idol.debutDate || '2013-06-13'

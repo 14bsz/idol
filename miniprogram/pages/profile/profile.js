@@ -3,6 +3,7 @@ Page({
     isLoggedIn: false,
     userInfo: null,
     resolvedAvatarUrl: '',
+    showWechatAvatarBtn: false,
     menuItems: [
       {
         icon: '📊',
@@ -60,20 +61,14 @@ Page({
     wx.reLaunch({ url: '/pages/login/login' });
   },
 
-  async loadData() {
+  loadData() {
     const app = getApp();
     const isLoggedIn = app.isLoggedIn();
     const userInfo = app.globalData.userInfo;
-    let resolvedAvatarUrl = app.resolveMediaUrl(userInfo?.avatarUrl);
-    
-    if (resolvedAvatarUrl && resolvedAvatarUrl.startsWith('cloud://')) {
-      resolvedAvatarUrl = await app.getCloudTempFileURL(resolvedAvatarUrl);
-    }
-    
     this.setData({ 
       isLoggedIn,
       userInfo,
-      resolvedAvatarUrl
+      resolvedAvatarUrl: app.resolveMediaUrl(userInfo?.avatarUrl)
     });
   },
 
@@ -94,7 +89,8 @@ Page({
       itemList: ['使用微信头像', '从相册选择'],
       success(res) {
         if (res.tapIndex === 0) {
-          that.chooseWechatAvatar();
+          // 触发 wxml 中 open-type="chooseAvatar" 的 button
+          that.setData({ showWechatAvatarBtn: true });
         } else if (res.tapIndex === 1) {
           that.chooseAlbumAvatar();
         }
@@ -102,19 +98,11 @@ Page({
     });
   },
 
-  chooseWechatAvatar() {
-    const that = this;
-    wx.getUserProfile({
-      desc: '用于完善用户头像',
-      success(res) {
-        const avatarUrl = res.userInfo.avatarUrl;
-        that.uploadAndUpdateAvatar(avatarUrl);
-      },
-      fail(err) {
-        console.error('获取微信头像失败', err);
-        wx.showToast({ title: '获取头像失败', icon: 'none' });
-      }
-    });
+  // open-type="chooseAvatar" 回调
+  onChooseWechatAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl;
+    this.setData({ showWechatAvatarBtn: false });
+    this.uploadAndUpdateAvatar(avatarUrl);
   },
 
   chooseAlbumAvatar() {

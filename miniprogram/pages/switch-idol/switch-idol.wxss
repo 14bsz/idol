@@ -256,18 +256,27 @@ page {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 80rpx;
-  height: 80rpx;
-  background: #1e293b;
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10rpx 15rpx -3rpx rgba(0,0,0,0.1);
+  box-shadow: 0 6rpx 16rpx -3rpx rgba(236, 72, 153, 0.4);
+  border: 4rpx solid #fff;
 }
 
-.camera-btn text {
-  font-size: 36rpx;
+.avatar-placeholder {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: #fce4ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 8rpx solid #fff;
+  box-shadow: 0 20rpx 25rpx -5rpx rgba(0,0,0,0.1);
 }
 
 /* 表单区域 */
