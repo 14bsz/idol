@@ -1,9 +1,9 @@
-<view class="container" style="padding-top: {{totalNavHeight}}px;">
-  <view class="header" style="height: {{navHeight + navTop}}px; padding-top: {{navTop}}px;">
-    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight}}px;">
+<view class="container" style="padding-top: {{totalNavHeight + 20}}px;">
+  <view class="header" style="height: {{navHeight + navTop + 20}}px; padding-top: {{navTop}}px;">
+    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight + 20}}px;">
       <text class="nav-icon">‹</text>
     </view>
-    <view class="nav-title" style="line-height: {{navHeight}}px;">新增收藏</view>
+    <view class="nav-title" style="line-height: {{navHeight + 20}}px;">新增收藏</view>
     <view class="nav-right" style="width: {{menuButtonWidth}}px; padding-right: {{menuButtonRight}}rpx;">
       <!-- 保存按钮现在避开了胶囊 -->
     </view>

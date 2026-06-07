@@ -1,9 +1,9 @@
-<view class="container" style="padding-top: {{totalNavHeight}}px;">
-  <view class="header" style="height: {{navHeight + navTop}}px; padding-top: {{navTop}}px;">
-    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight}}px;">
+<view class="container" style="padding-top: {{totalNavHeight + 20}}px;">
+  <view class="header" style="height: {{navHeight + navTop + 20}}px; padding-top: {{navTop}}px;">
+    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight + 20}}px;">
       <text class="nav-icon">‹</text>
     </view>
-    <view class="nav-title" style="line-height: {{navHeight}}px;">{{mode === 'edit' ? '编辑日记' : '写日记'}}</view>
+    <view class="nav-title" style="line-height: {{navHeight + 20}}px;">{{mode === 'edit' ? '编辑日记' : '写日记'}}</view>
     <view class="nav-right"></view>
   </view>
 
