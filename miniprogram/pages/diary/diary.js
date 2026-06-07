@@ -45,6 +45,12 @@ Page({
     
     if (isLoggedIn) {
       const currentIdol = app.globalData.currentIdol;
+      
+      console.log('[Diary List] Before sort, total diaries:', app.globalData.diaries.length);
+      app.globalData.diaries.forEach((d, i) => {
+        console.log(`[Diary ${i}] id=${d.id}, createTime=${d.createTime}, createdAt=${d.createdAt}, pinned=${d.pinned}`);
+      });
+      
       const diaries = app.globalData.diaries
         .filter(d => d.idolId == currentIdol?.id)
         .sort((a, b) => {
@@ -56,7 +62,13 @@ Page({
           // 优先使用 createTime（包含完整时间），如果没有则使用 createdAt
           const timeA = new Date(a.createTime || a.createdAt).getTime();
           const timeB = new Date(b.createTime || b.createdAt).getTime();
-          return timeB - timeA;
+          const result = timeB - timeA;
+          
+          if (Math.abs(timeB - timeA) > 1000) { // 只记录时间差大于1秒的
+            console.log(`[Sort] Compare id=${a.id}(${timeA}) vs id=${b.id}(${timeB}), result=${result}`);
+          }
+          
+          return result;
         })
         .map(d => ({
           ...d,
@@ -64,6 +76,11 @@ Page({
           displayDate: (d.createdAt || d.createTime).replace(/-/g, '.').substring(0, 10).replace(/-/g, '.'),
           gridClass: this.getGridClass(d.images?.length || 0)
         }));
+      
+      console.log('[Diary List] After sort:');
+      diaries.forEach((d, i) => {
+        console.log(`[Position ${i}] id=${d.id}, createTime=${d.createTime}, pinned=${d.pinned}`);
+      });
       
       // 收集所有标签
       const tagSet = new Set();
