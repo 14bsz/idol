@@ -379,10 +379,15 @@ App({
           method: 'POST',
           data: { code },
           success: (res) => {
-            handleResponse(res.data);
+            console.log('[云托管登录] statusCode:', res.statusCode, 'data:', JSON.stringify(res.data));
+            if (res.statusCode === 200) {
+              handleResponse(res.data);
+            } else {
+              reject(new Error((res.data && res.data.message) || '登录失败'));
+            }
           },
           fail: (error) => {
-            console.error('登录请求失败（云托管）', error);
+            console.error('[云托管登录] fail:', JSON.stringify(error));
             reject(new Error('网络请求失败，请稍后重试'));
           }
         });
