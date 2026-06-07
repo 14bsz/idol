@@ -56,12 +56,12 @@
   <!-- 编辑/添加表单 -->
   <view wx:else class="form-container">
     <view class="avatar-section">
-      <view class="avatar-wrapper">
+      <view class="avatar-wrapper" bindtap="onChooseAvatar">
         <view wx:if="{{!newAvatar}}" class="avatar-placeholder">
           <image src="/images/avatar-placeholder.svg" class="avatar-placeholder-icon" mode="aspectFit" />
         </view>
         <image wx:else src="{{newAvatar}}" class="form-avatar" mode="aspectFill" />
-        <view bindtap="onChooseAvatar" class="camera-btn">
+        <view catchtap="onChooseAvatar" class="camera-btn">
           <image src="/images/camera.svg" class="camera-icon" mode="aspectFit" />
         </view>
       </view>
