@@ -53,8 +53,9 @@ Page({
           if (!a.pinned && b.pinned) return 1;
           
           // 都置顶或都不置顶时，按创建时间倒序（新的在前）
-          const timeA = new Date(a.createdAt || a.createTime).getTime();
-          const timeB = new Date(b.createdAt || b.createTime).getTime();
+          // 优先使用 createTime（包含完整时间），如果没有则使用 createdAt
+          const timeA = new Date(a.createTime || a.createdAt).getTime();
+          const timeB = new Date(b.createTime || b.createdAt).getTime();
           return timeB - timeA;
         })
         .map(d => ({
