@@ -56,14 +56,6 @@
       </view>
     </view>
 
-    <view class="tag-section">
-      <text class="section-label">追星标签</text>
-      <view class="tag-list">
-        <view class="tag-item {{selectedTags.includes(item) ? 'active' : ''}}" wx:for="{{tags}}" wx:key="*this" bindtap="toggleTag" data-tag="{{item}}">
-          {{item}}
-        </view>
-      </view>
-    </view>
 
     <view class="template-section">
       <text class="section-label">排版风格</text>
