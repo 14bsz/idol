@@ -126,4 +126,27 @@ public class DiaryController {
             throw ex;
         }
     }
+
+    @PutMapping("/{id}/pin")
+    public Result<Diary> togglePinDiary(@PathVariable Long id, @RequestBody JsonNode json) {
+        log.info("[DiaryController] togglePinDiary request - id={}, body={}", id, json.toString());
+        try {
+            Diary diary = diaryService.getByDiaryId(id);
+            if (diary == null) {
+                throw new RuntimeException("Diary not found");
+            }
+            // 从请求体获取 pinned 值
+            Integer pinned = 0;
+            if (json.has("pinned") && !json.get("pinned").isNull()) {
+                pinned = json.get("pinned").asInt();
+            }
+            diary.setPinned(pinned);
+            Diary updated = diaryService.updateDiary(diary);
+            log.info("[DiaryController] togglePinDiary success - id={}, pinned={}", id, pinned);
+            return Result.success(updated);
+        } catch (Exception ex) {
+            log.error("[DiaryController] togglePinDiary error", ex);
+            throw ex;
+        }
+    }
 }

@@ -68,25 +68,6 @@ public class FileController {
         }
     }
 
-    @PostMapping("/upload-from-cloud")
-    public Result<Map<String, String>> uploadFromCloud(@RequestBody Map<String, String> request) {
-        try {
-            String fileID = request.get("fileID");
-            if (fileID == null || fileID.isEmpty()) {
-                return Result.error("fileID不能为空");
-            }
-
-            Map<String, String> result = new HashMap<>();
-            result.put("url", fileID);
-            result.put("filename", fileID);
-
-            return Result.success(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.error("文件处理失败: " + e.getMessage());
-        }
-    }
-
     private void debugReport(String hypothesisId, String location, String msg, String dataJson) {
         try {
             URL url = new URL("http://127.0.0.1:7777/event");

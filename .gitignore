@@ -6,29 +6,3 @@ coverage/
 *.log
 .env*
 !.env.example
-
-# Maven
-backend/target/
-backend/.mvn/
-mvnw
-mvnw.cmd
-
-# Uploads
-uploads/
-
-# Debug files
-debug-*.md
-
-# IDE
-.idea/
-.vscode/
-*.iml
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
-
-# Mini Program private config
-miniprogram/project.private.config.json

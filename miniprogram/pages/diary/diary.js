@@ -47,11 +47,20 @@ Page({
       const currentIdol = app.globalData.currentIdol;
       const diaries = app.globalData.diaries
         .filter(d => d.idolId == currentIdol?.id)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .sort((a, b) => {
+          // 置顶日记优先
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          
+          // 都置顶或都不置顶时，按创建时间倒序（新的在前）
+          const timeA = new Date(a.createdAt || a.createTime).getTime();
+          const timeB = new Date(b.createdAt || b.createTime).getTime();
+          return timeB - timeA;
+        })
         .map(d => ({
           ...d,
           moodText: this.getMoodText(d.mood),
-          displayDate: d.createdAt.replace(/-/g, '.'),
+          displayDate: (d.createdAt || d.createTime).replace(/-/g, '.').substring(0, 10).replace(/-/g, '.'),
           gridClass: this.getGridClass(d.images?.length || 0)
         }));
       
@@ -102,42 +111,83 @@ Page({
 
   onEntryClick(e) {
     const index = e.currentTarget.dataset.index;
-    const diary = this.data.diaries[index];
+    const diary = this.data.filteredDiaries[index];
     wx.navigateTo({ url: '/pages/diary-detail/diary-detail?id=' + diary.id });
   },
 
   onShare(e) {
     const index = e.currentTarget.dataset.index;
     const app = getApp();
-    const diary = this.data.diaries[index];
+    const diary = this.data.filteredDiaries[index];
     app.globalData.sharingEntry = diary;
     wx.navigateTo({ url: '/pages/card-generator/card-generator' });
   },
 
   onMore(e) {
     const index = e.currentTarget.dataset.index;
+    const diary = this.data.filteredDiaries[index];
+    const isPinned = diary.pinned || false;
+    
     wx.showActionSheet({
-      itemList: ['编辑日记', '删除日记'],
+      itemList: [
+        isPinned ? '取消置顶' : '置顶日记',
+        '编辑日记', 
+        '删除日记'
+      ],
       itemColor: '#000000',
       success: (res) => {
         if (res.tapIndex === 0) {
-          this.onEdit(index);
+          this.onTogglePin(index);
         } else if (res.tapIndex === 1) {
+          this.onEdit(index);
+        } else if (res.tapIndex === 2) {
           this.onDelete(index);
         }
       }
     });
   },
 
+  onTogglePin(index) {
+    const diary = this.data.filteredDiaries[index];
+    const app = getApp();
+    
+    // 切换置顶状态
+    const newPinnedState = !diary.pinned;
+    
+    // 调用后端接口
+    app.request({
+      url: `/diaries/${diary.id}/pin`,
+      method: 'PUT',
+      data: { pinned: newPinnedState ? 1 : 0 }
+    }).then(() => {
+      // 更新本地数据
+      const globalDiary = app.globalData.diaries.find(d => d.id == diary.id);
+      if (globalDiary) {
+        globalDiary.pinned = newPinnedState;
+      }
+      
+      // 重新加载列表
+      this.loadData();
+      
+      wx.showToast({ 
+        title: newPinnedState ? '已置顶' : '已取消置顶', 
+        icon: 'success' 
+      });
+    }).catch((err) => {
+      console.error('置顶操作失败:', err);
+      wx.showToast({ title: '操作失败', icon: 'error' });
+    });
+  },
+
   onEdit(index) {
-    const diary = this.data.diaries[index];
+    const diary = this.data.filteredDiaries[index];
     const app = getApp();
     app.globalData.editingDiary = diary;
     wx.navigateTo({ url: '/pages/diary-editor/diary-editor?mode=edit' });
   },
 
   onDelete(index) {
-    const diary = this.data.diaries[index];
+    const diary = this.data.filteredDiaries[index];
     
     wx.showModal({
       title: '确认删除',

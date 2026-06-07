@@ -30,21 +30,6 @@ Page({
     }).filter(url => url);
   },
 
-  async loadImageUrls(images) {
-    const app = getApp();
-    const urls = this.getImageUrls(images);
-    const result = [];
-    for (const url of urls) {
-      if (url.startsWith('cloud://')) {
-        const tempUrl = await app.getCloudTempFileURL(url);
-        result.push(tempUrl);
-      } else {
-        result.push(url);
-      }
-    }
-    return result;
-  },
-
   onLoad(options) {
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     this.setData({ 
@@ -60,7 +45,7 @@ Page({
     }
   },
 
-  async loadData() {
+  loadData() {
     const app = getApp();
     const rawDiary = app.globalData.diaries.find(d => d.id == this.data.diaryId);
     
@@ -70,25 +55,26 @@ Page({
       return;
     }
 
-    const persistedDiary = await app.ensureDiaryMediaPersisted(rawDiary);
-    const diary = persistedDiary || rawDiary;
-    const moodMap = {
-      'heart': { text: '心动', icon: '💗' },
-      'excited': { text: '狂喜', icon: '🎉' },
-      'healing': { text: '治愈', icon: '🌈' },
-      'missing': { text: '想念', icon: '💭' },
-      'breakdown': { text: '破防', icon: '😭' }
-    };
-    const mood = moodMap[diary.mood] || moodMap['heart'];
-    const imageUrls = await this.loadImageUrls(diary.images);
+    app.ensureDiaryMediaPersisted(rawDiary).then((persistedDiary) => {
+      const diary = persistedDiary || rawDiary;
+      const moodMap = {
+        'heart': { text: '心动', icon: '💗' },
+        'excited': { text: '狂喜', icon: '🎉' },
+        'healing': { text: '治愈', icon: '🌈' },
+        'missing': { text: '想念', icon: '💭' },
+        'breakdown': { text: '破防', icon: '😭' }
+      };
+      const mood = moodMap[diary.mood] || moodMap['heart'];
+      const imageUrls = this.getImageUrls(diary.images);
 
-    this.setData({
-      diary,
-      displayDate: diary.createdAt.replace(/-/g, '.'),
-      moodText: mood.text,
-      moodIcon: mood.icon,
-      imageGridClass: this.getGridClass(diary.images),
-      imageUrls
+      this.setData({
+        diary,
+        displayDate: diary.createdAt.replace(/-/g, '.'),
+        moodText: mood.text,
+        moodIcon: mood.icon,
+        imageGridClass: this.getGridClass(diary.images),
+        imageUrls
+      });
     });
   },
 
