@@ -36,11 +36,22 @@ const getRuntimeEnvVersion = () => {
 };
 
 /**
- * 是否使用云托管调用方式（非开发环境时启用）
+ * 是否使用云托管调用方式。
+ * - trial / release：始终走云托管
+ * - develop：开发者工具内运行走本地，真机预览也走云托管（手机连不到本机 localhost）
  */
 const useCloudContainer = (envVersion) => {
   const currentEnv = envVersion || getRuntimeEnvVersion();
-  return currentEnv !== 'develop';
+  if (currentEnv !== 'develop') return true;
+
+  // develop 环境下，判断是否在真机上运行（真机预览无法访问本机服务）
+  try {
+    const systemInfo = wx.getSystemInfoSync();
+    // platform 为 'devtools' 表示在开发者工具中，其他（ios/android）表示真机
+    return systemInfo.platform !== 'devtools';
+  } catch (e) {
+    return false;
+  }
 };
 
 const getApiBaseUrl = (envVersion) => {
