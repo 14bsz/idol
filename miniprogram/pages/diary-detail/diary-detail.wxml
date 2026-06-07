@@ -29,7 +29,7 @@
         </view>
       </view>
 
-      <view class="diary-content">
+      <view class="diary-content template-{{diary.template || 'default'}}">
         <text class="content-text">{{diary.content}}</text>
       </view>
 

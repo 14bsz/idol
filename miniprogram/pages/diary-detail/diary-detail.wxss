@@ -144,6 +144,44 @@
   padding: 32rpx;
 }
 
+/* 默认风格 - 温柔 */
+.diary-content.template-default .content-text {
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: #333333;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* 文艺风格 - serif */
+.diary-content.template-serif {
+  padding: 40rpx 48rpx;
+  background: linear-gradient(to bottom, #FFF9F0 0%, #FFFFFF 100%);
+}
+
+.diary-content.template-serif .content-text {
+  font-size: 32rpx;
+  line-height: 2.2;
+  color: #4A4A4A;
+  font-family: "Songti SC", "SimSun", serif;
+  letter-spacing: 2rpx;
+  text-indent: 2em;
+}
+
+/* 热烈风格 - bold */
+.diary-content.template-bold {
+  padding: 36rpx;
+  background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EC 100%);
+}
+
+.diary-content.template-bold .content-text {
+  font-size: 34rpx;
+  line-height: 1.9;
+  color: #2D2D2D;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  letter-spacing: 1rpx;
+}
+
 .content-text {
   font-size: 30rpx;
   line-height: 1.8;
