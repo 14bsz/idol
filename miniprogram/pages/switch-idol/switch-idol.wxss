@@ -271,12 +271,21 @@ page {
   width: 240rpx;
   height: 240rpx;
   border-radius: 50%;
-  background: #fce4ec;
+  background: linear-gradient(135deg, #fce4ec, #f8bbd0);
   display: flex;
   align-items: center;
   justify-content: center;
   border: 8rpx solid #fff;
   box-shadow: 0 20rpx 25rpx -5rpx rgba(0,0,0,0.1);
+}
+
+.avatar-placeholder-icon {
+  font-size: 72rpx;
+}
+
+.camera-icon {
+  width: 44rpx;
+  height: 44rpx;
 }
 
 /* 表单区域 */
