@@ -310,6 +310,7 @@ page {
   font-weight: 600;
   font-size: 28rpx;
   color: #1e293b;
+  font-family: sans-serif;
   box-sizing: border-box;
   border: 2rpx solid transparent;
   transition: border-color 0.2s;

@@ -78,8 +78,8 @@
         <text class="field-label">爱豆本名 / 艺名</text>
         <input 
           class="field-input" 
-          placeholder="例如：田柾国 / Jungkook" 
-          placeholder-style="font-size:26rpx;color:#cbd5e1;"
+          placeholder="如：田柾国 / Jungkook" 
+          placeholder-style="font-size:26rpx;color:#cbd5e1;font-family:sans-serif;"
           value="{{newName}}" 
           bindinput="onNameInput"
         />
@@ -89,8 +89,8 @@
         <text class="field-label">专属昵称</text>
         <input 
           class="field-input" 
-          placeholder="例如：果子 / JK" 
-          placeholder-style="font-size:26rpx;color:#cbd5e1;"
+          placeholder="如：果子 / JK" 
+          placeholder-style="font-size:26rpx;color:#cbd5e1;font-family:sans-serif;"
           value="{{newNickname}}" 
           bindinput="onNicknameInput"
         />
