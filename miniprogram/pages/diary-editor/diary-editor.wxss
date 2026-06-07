@@ -274,9 +274,6 @@
 
 .tag-section {
   margin-bottom: 40rpx;
-  padding: 24rpx;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 24rpx;
 }
 
 .tag-list {
@@ -286,27 +283,23 @@
 }
 
 .tag-item {
-  padding: 16rpx 28rpx;
-  background: #FFFFFF;
-  color: #999999;
-  font-size: 26rpx;
-  font-weight: bold;
-  border-radius: 24rpx;
-  border: 2rpx solid #FFE4EC;
+  padding: 20rpx 32rpx;
+  background: linear-gradient(135deg, #FFFFFF, #FFF9FB);
+  color: #94a3b8;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 32rpx;
+  border: 3rpx solid #FFE4EC;
   transition: all 0.3s;
-  cursor: pointer;
-  min-height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 105, 180, 0.08);
 }
 
 .tag-item.active {
-  background: #F3E5F5;
-  border-color: #D8BFD8;
-  color: #9C27B0;
-  box-shadow: 0 2rpx 8rpx rgba(156, 39, 176, 0.1);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #F3E5F5, #FCE4EC);
+  border-color: #EC4899;
+  color: #EC4899;
+  box-shadow: 0 6rpx 20rpx rgba(236, 72, 153, 0.25);
+  transform: translateY(-4rpx);
 }
 
 .template-section {

@@ -610,7 +610,8 @@ App({
         idolId: collection.idolId,
         imageUrl: collection.imageUrl,
         category: collection.category,
-        notes: collection.notes
+        notes: collection.notes,
+        tags: collection.tags || ''
       };
       
       if (collection.id) {
