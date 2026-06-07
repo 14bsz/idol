@@ -2,7 +2,7 @@
 // 云托管配置（体验版 / 正式版走 wx.cloud.callContainer）
 // ────────────────────────────────────────────────
 const CLOUD_ENV_ID = 'prod-d7gv8c42oa25aafb0';       // 云托管环境 ID
-const CLOUD_SERVICE_NAME = 'springboot-xxpl';          // 云托管服务名
+const CLOUD_SERVICE_NAME = 'springboot-h9k1';          // 云托管服务名
 
 // 开发环境直接访问本地后端（HTTP，无需配置合法域名）
 const API_BASE_URLS = {
