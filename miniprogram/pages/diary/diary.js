@@ -1,7 +1,10 @@
 Page({
   data: {
     isLoggedIn: false,
-    diaries: []
+    diaries: [],
+    filteredDiaries: [],
+    allTags: [],
+    selectedTag: null
   },
 
 
@@ -51,7 +54,22 @@ Page({
           displayDate: d.createdAt.replace(/-/g, '.'),
           gridClass: this.getGridClass(d.images?.length || 0)
         }));
-      this.setData({ diaries });
+      
+      // 收集所有标签
+      const tagSet = new Set();
+      diaries.forEach(d => {
+        if (d.tags && Array.isArray(d.tags)) {
+          d.tags.forEach(tag => tagSet.add(tag));
+        }
+      });
+      const allTags = Array.from(tagSet);
+      
+      this.setData({ 
+        diaries,
+        filteredDiaries: diaries,
+        allTags,
+        selectedTag: null
+      });
     }
   },
 
@@ -133,6 +151,35 @@ Page({
           wx.showToast({ title: '删除成功', icon: 'success' });
         }
       }
+    });
+  },
+
+  onTagSelect(e) {
+    const tag = e.currentTarget.dataset.tag;
+    const { selectedTag, diaries } = this.data;
+    
+    // 如果点击的是已选中的标签，则取消筛选
+    if (selectedTag === tag) {
+      this.setData({
+        selectedTag: null,
+        filteredDiaries: diaries
+      });
+    } else {
+      // 筛选包含该标签的日记
+      const filteredDiaries = diaries.filter(d => {
+        return d.tags && Array.isArray(d.tags) && d.tags.includes(tag);
+      });
+      this.setData({
+        selectedTag: tag,
+        filteredDiaries
+      });
+    }
+  },
+
+  clearTagFilter() {
+    this.setData({
+      selectedTag: null,
+      filteredDiaries: this.data.diaries
     });
   }
 })

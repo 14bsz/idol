@@ -23,10 +23,34 @@
       </view>
     </view>
 
+    <!-- 标签筛选区域 -->
+    <view wx:if="{{allTags.length > 0}}" class="tag-filter-section">
+      <view class="tag-filter-header">
+        <text class="tag-filter-title">🏷️ 按标签筛选</text>
+        <text wx:if="{{selectedTag}}" class="tag-clear-btn" bindtap="clearTagFilter">清除</text>
+      </view>
+      <scroll-view class="tag-filter-scroll" scroll-x enable-flex>
+        <view class="tag-filter-list">
+          <view 
+            class="tag-filter-item {{selectedTag === item ? 'active' : ''}}" 
+            wx:for="{{allTags}}" 
+            wx:key="*this"
+            bindtap="onTagSelect"
+            data-tag="{{item}}"
+          >
+            <text class="tag-filter-text">{{item}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view wx:if="{{selectedTag}}" class="tag-filter-result">
+        <text class="tag-filter-result-text">共找到 {{filteredDiaries.length}} 条相关日记</text>
+      </view>
+    </view>
+
     <view class="space-y-8 relative">
       <view class="absolute left-6 top-10 bottom-0 w-px bg-gradient-to-b" />
 
-      <block wx:for="{{diaries}}" wx:key="id" wx:for-index="idx">
+      <block wx:for="{{filteredDiaries}}" wx:key="id" wx:for-index="idx">
         <view class="pl-12 relative">
           <view class="absolute dot-left top-1 dot-size rounded-full bg-white ring-4 z-10" />
           
@@ -49,6 +73,13 @@
 
             <view bindtap="onEntryClick" class="space-y-4" data-index="{{idx}}">
               <text class="text-sm text-slate-700 leading-relaxed font-light">{{item.content}}</text>
+              
+              <!-- 日记标签 -->
+              <view wx:if="{{item.tags && item.tags.length > 0}}" class="diary-tags">
+                <view class="diary-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">
+                  <text class="diary-tag-text">#{{tag}}</text>
+                </view>
+              </view>
               
               <view wx:if="{{item.images && item.images.length > 0}}" class="grid gap-2 overflow-hidden diary-media-grid {{item.gridClass}}">
                 <block wx:for="{{item.images}}" wx:for-item="img" wx:for-index="idx" wx:key="*this">
@@ -76,11 +107,11 @@
         </view>
       </block>
       
-      <view wx:if="{{diaries.length === 0}}" class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
+      <view wx:if="{{filteredDiaries.length === 0}}" class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
         <view class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
           <text class="text-2xl opacity-20">🖼️</text>
         </view>
-        <text class="text-sm italic">还没有写日记哦，快来记录心动瞬间吧 ✨</text>
+        <text class="text-sm italic">{{selectedTag ? '该标签下还没有日记哦' : '还没有写日记哦，快来记录心动瞬间吧 ✨'}}</text>
       </view>
     </view>
   </view>
