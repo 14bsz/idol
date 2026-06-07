@@ -64,6 +64,7 @@ Page({
       });
       const allTags = Array.from(tagSet);
       
+      // 重新加载数据时清除筛选状态，显示所有日记
       this.setData({ 
         diaries,
         filteredDiaries: diaries,
