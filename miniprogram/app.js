@@ -1,4 +1,4 @@
-const { getRuntimeEnvVersion, getApiBaseUrl, getApiConfigError } = require('./utils/env');
+const { CLOUD_ENV_ID, CLOUD_SERVICE_NAME, getRuntimeEnvVersion, getApiBaseUrl, getUploadUrl, getApiConfigError, useCloudContainer } = require('./utils/env');
 
 App({
   globalData: {
@@ -14,35 +14,33 @@ App({
   },
 
   baseUrl: '',
+  uploadUrl: '',
   envVersion: 'develop',
+  useCloud: false,      // 是否走云托管调用
   apiConfigError: '',
   restoreSessionPromise: null,
 
   onLaunch() {
     this.initApiConfig();
-    this.initCloud();
+    // 初始化云开发（云托管调用依赖 wx.cloud）
+    if (wx.cloud) {
+      wx.cloud.init({ env: CLOUD_ENV_ID, traceUser: true });
+    }
     this.loadAuthFromStorage();
     this.restoreSession();
   },
 
-  initCloud() {
-    if (!wx.cloud) {
-      console.warn('请使用 2.2.3 或以上的基础库以使用云能力');
-      return;
-    }
-    wx.cloud.init({
-      env: 'prod-d7gv8c42oa25aafb0',
-      traceUser: true
-    });
-  },
-
   initApiConfig() {
     this.envVersion = getRuntimeEnvVersion();
+    this.useCloud = useCloudContainer(this.envVersion);
     this.baseUrl = getApiBaseUrl(this.envVersion);
+    this.uploadUrl = getUploadUrl(this.envVersion);
     this.apiConfigError = getApiConfigError(this.baseUrl, this.envVersion);
   },
 
   ensureApiReady(actionText) {
+    // 云托管模式不依赖 baseUrl，始终可用
+    if (this.useCloud) return '';
     if (!this.baseUrl || this.apiConfigError) {
       return this.apiConfigError || `当前环境未配置可用接口地址，无法${actionText || '发起请求'}。`;
     }
@@ -88,38 +86,17 @@ App({
     if (/^(https?:|data:|wxfile:|file:)/.test(url)) {
       return url;
     }
-    if (url.startsWith('cloud://')) {
-      return url;
-    }
     if (url.startsWith('/')) {
+      if (this.useCloud) {
+        // 云托管模式：使用公网 HTTPS 地址拼接（文件访问走公网）
+        return 'https://springboot-xxpl-267159-8-1440827759.sh.run.tcloudbase.com' + url;
+      }
       if (!this.baseUrl) {
         return url;
       }
       return this.baseUrl.replace(/\/api$/, '') + url;
     }
     return url;
-  },
-
-  getCloudTempFileURL(fileID) {
-    return new Promise((resolve, reject) => {
-      if (!fileID || !fileID.startsWith('cloud://')) {
-        resolve(fileID);
-        return;
-      }
-      wx.cloud.getTempFileURL({
-        fileList: [fileID],
-        success: (res) => {
-          if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
-            resolve(res.fileList[0].tempFileURL);
-          } else {
-            resolve(fileID);
-          }
-        },
-        fail: () => {
-          resolve(fileID);
-        }
-      });
-    });
   },
 
   normalizeIdol(idol) {
@@ -370,16 +347,16 @@ App({
         return;
       }
 
-      const handleSuccess = (response) => {
-        if (response.statusCode === 200 && response.data.code === 200) {
-          const { token, userId, nickname, avatarUrl } = response.data.data;
+      const handleResponse = (data) => {
+        if (data.code === 200) {
+          const { token, userId, nickname, avatarUrl } = data.data;
           this.globalData.token = token;
           this.globalData.userId = userId;
           this.globalData.userInfo = { nickname, avatarUrl };
           this.globalData.authChecked = false;
-          
+
           this.saveAuthToStorage();
-          
+
           this.fetchAllDataFromServer().then(() => {
             this.globalData.authChecked = true;
             resolve();
@@ -389,34 +366,44 @@ App({
             resolve();
           });
         } else {
-          reject(new Error(response.data.message || '登录失败'));
+          reject(new Error(data.message || '登录失败'));
         }
       };
 
-      const handleFail = (error) => {
-        console.error('登录请求失败', error);
-        reject(new Error(this.apiConfigError || '网络请求失败，请检查网络连接'));
-      };
-
-      if (this.envVersion === 'develop') {
+      if (this.useCloud) {
+        // ── 云托管调用 ──
+        wx.cloud.callContainer({
+          config: { env: CLOUD_ENV_ID },
+          path: '/api/auth/login',
+          header: { 'X-WX-SERVICE': CLOUD_SERVICE_NAME, 'Content-Type': 'application/json' },
+          method: 'POST',
+          data: { code },
+          success: (res) => {
+            handleResponse(res.data);
+          },
+          fail: (error) => {
+            console.error('登录请求失败（云托管）', error);
+            reject(new Error('网络请求失败，请稍后重试'));
+          }
+        });
+      } else {
+        // ── 开发环境直连 ──
         wx.request({
           url: this.baseUrl + '/auth/login',
           method: 'POST',
-          data: { code: code },
-          success: handleSuccess,
-          fail: handleFail
-        });
-      } else {
-        wx.cloud.callContainer({
-          config: { env: 'prod-d7gv8c42oa25aafb0' },
-          path: '/api/auth/login',
-          header: {
-            'Content-Type': 'application/json',
-            'X-WX-SERVICE': 'springboot-xxpl'
+          data: { code },
+          success: (response) => {
+            if (response.statusCode === 200) {
+              handleResponse(response.data);
+            } else {
+              reject(new Error(response.data.message || '登录失败'));
+            }
           },
-          method: 'POST',
-          data: { code: code }
-        }).then(handleSuccess).catch(handleFail);
+          fail: (error) => {
+            console.error('登录请求失败', error);
+            reject(new Error(this.apiConfigError || '网络请求失败，请检查网络连接'));
+          }
+        });
       }
     });
   },
@@ -779,54 +766,31 @@ App({
       }
 
       const header = {};
-      
+
       if (this.globalData.token) {
         header['Authorization'] = this.globalData.token;
       }
 
-      const handleSuccess = (response) => {
-        const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-        if (data.code === 200) {
-          resolve(data);
-        } else {
-          reject(new Error(data.message || '上传失败'));
+      // 云托管模式仍走 wx.uploadFile，但使用云托管公网 HTTPS 地址
+      // wx.cloud.callContainer 不支持文件上传
+      wx.uploadFile({
+        url: this.uploadUrl,
+        filePath: filePath,
+        name: 'file',
+        header: header,
+        success: (response) => {
+          const data = JSON.parse(response.data);
+          if (data.code === 200) {
+            resolve(data);
+          } else {
+            reject(new Error(data.message || '上传失败'));
+          }
+        },
+        fail: (error) => {
+          console.error('文件上传失败', error);
+          reject(new Error('文件上传失败，请检查网络连接'));
         }
-      };
-
-      const handleFail = (error) => {
-        console.error('文件上传失败', error);
-        reject(new Error(this.apiConfigError || '文件上传失败，请检查网络连接'));
-      };
-
-      if (this.envVersion === 'develop') {
-        wx.uploadFile({
-          url: this.baseUrl + '/files/upload',
-          filePath: filePath,
-          name: 'file',
-          header: header,
-          success: handleSuccess,
-          fail: handleFail
-        });
-      } else {
-        wx.cloud.uploadFile({
-          cloudPath: 'uploads/' + Date.now() + '-' + Math.random().toString(36).substr(2, 9) + '.jpg',
-          filePath: filePath,
-          success: (res) => {
-            wx.cloud.callContainer({
-              config: { env: 'prod-d7gv8c42oa25aafb0' },
-              path: '/api/files/upload-from-cloud',
-              header: {
-                'Content-Type': 'application/json',
-                'X-WX-SERVICE': 'springboot-xxpl',
-                ...header
-              },
-              method: 'POST',
-              data: { fileID: res.fileID }
-            }).then(handleSuccess).catch(handleFail);
-          },
-          fail: handleFail
-        });
-      }
+      });
     });
   },
 
@@ -841,64 +805,57 @@ App({
       const headers = {
         'Content-Type': 'application/json'
       };
-      
+
       if (this.globalData.token) {
         headers['Authorization'] = this.globalData.token;
       }
 
-      if (this.envVersion === 'develop') {
+      const handleResponse = (statusCode, data) => {
+        if (statusCode === 200) {
+          if (data.code === 200) {
+            resolve(data);
+          } else {
+            reject(new Error(data.message || '请求失败'));
+          }
+        } else if (statusCode === 401) {
+          this.clearAllData();
+          wx.reLaunch({ url: '/pages/login/login' });
+          reject(new Error('登录已过期，请重新登录'));
+        } else {
+          reject(new Error('请求失败'));
+        }
+      };
+
+      if (this.useCloud) {
+        // ── 云托管调用 ──
+        wx.cloud.callContainer({
+          config: { env: CLOUD_ENV_ID },
+          path: '/api' + options.url,
+          header: { ...headers, 'X-WX-SERVICE': CLOUD_SERVICE_NAME },
+          method: options.method || 'GET',
+          data: options.data,
+          success: (res) => {
+            handleResponse(res.statusCode, res.data);
+          },
+          fail: (error) => {
+            console.error('接口请求失败（云托管）', error);
+            reject(new Error('网络请求失败，请稍后重试'));
+          }
+        });
+      } else {
+        // ── 开发环境直连 ──
         wx.request({
           url: this.baseUrl + options.url,
           method: options.method || 'GET',
           data: options.data,
           header: headers,
           success: (response) => {
-            if (response.statusCode === 200) {
-              if (response.data.code === 200) {
-                resolve(response.data);
-              } else {
-                reject(new Error(response.data.message || '请求失败'));
-              }
-            } else if (response.statusCode === 401) {
-              this.clearAllData();
-              wx.reLaunch({ url: '/pages/login/login' });
-              reject(new Error('登录已过期，请重新登录'));
-            } else {
-              reject(new Error('请求失败'));
-            }
+            handleResponse(response.statusCode, response.data);
           },
           fail: (error) => {
             console.error('接口请求失败', error);
             reject(new Error(this.apiConfigError || '网络请求失败，请检查网络连接或合法域名配置'));
           }
-        });
-      } else {
-        wx.cloud.callContainer({
-          config: { env: 'prod-d7gv8c42oa25aafb0' },
-          path: '/api' + options.url,
-          header: {
-            ...headers,
-            'X-WX-SERVICE': 'springboot-xxpl'
-          },
-          method: options.method || 'GET',
-          data: options.data
-        }).then((response) => {
-          if (response.statusCode === 200) {
-            if (response.data.code === 200) {
-              resolve(response.data);
-            } else {
-              reject(new Error(response.data.message || '请求失败'));
-            }
-          } else if (response.statusCode === 401) {
-            this.clearAllData();
-            wx.reLaunch({ url: '/pages/login/login' });
-            reject(new Error('登录已过期，请重新登录'));
-          } else {
-            reject(new Error('请求失败'));
-          }
-        }).catch((error) => {
-          console.error('云托管接口请求失败', error);
-          reject(new Error('网络请求失败，请检查网络连接'));
         });
       }
     });
