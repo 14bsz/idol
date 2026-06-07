@@ -123,7 +123,8 @@ Page({
   onMore(e) {
     const index = e.currentTarget.dataset.index;
     const diary = this.data.filteredDiaries[index];
-    const isPinned = diary.pinned || false;
+    // pinned 是数字 0 或 1，需要明确判断
+    const isPinned = diary.pinned === 1 || diary.pinned === true;
     
     wx.showActionSheet({
       itemList: [
@@ -148,8 +149,9 @@ Page({
     const diary = this.data.filteredDiaries[index];
     const app = getApp();
     
-    // 切换置顶状态
-    const newPinnedState = !diary.pinned;
+    // 切换置顶状态 - pinned 是数字类型
+    const isPinned = diary.pinned === 1 || diary.pinned === true;
+    const newPinnedState = !isPinned;
     
     // 调用后端接口
     app.request({
