@@ -30,7 +30,10 @@ Page({
     mode: 'create',
     editingDiary: null,
     totalMediaCount: 0,
-    canSave: false
+    canSave: false,
+    navHeight: 0,
+    navTop: 0,
+    totalNavHeight: 0
   },
 
   updateCanSave() {
@@ -40,6 +43,14 @@ Page({
   },
 
   onLoad(options) {
+    // 计算导航栏高度，与 collection-add 保持一致
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+    const navTop = menuButtonInfo.top;
+    const navHeight = menuButtonInfo.height;
+    const totalNavHeight = systemInfo.statusBarHeight + navHeight + (menuButtonInfo.top - systemInfo.statusBarHeight) * 2;
+    this.setData({ navTop, navHeight, totalNavHeight });
+
     if (options.mode === 'edit') {
       const app = getApp();
       const diary = app.globalData.editingDiary;

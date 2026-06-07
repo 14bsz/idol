@@ -18,7 +18,6 @@
   right: 0;
   z-index: 100;
   box-sizing: border-box;
-  height: 88rpx;
 }
 
 .nav-left {
@@ -26,7 +25,6 @@
   left: 32rpx;
   display: flex;
   align-items: center;
-  height: 88rpx;
   z-index: 101;
 }
 
@@ -44,7 +42,9 @@
   font-weight: bold;
   color: #333333;
   font-family: serif;
-  line-height: 88rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-right {
@@ -52,8 +52,6 @@
   right: 32rpx;
   display: flex;
   justify-content: flex-end;
-  height: 88rpx;
-  align-items: center;
   z-index: 101;
 }
 
@@ -79,7 +77,6 @@
 .content-scroll {
   flex: 1;
   padding: 32rpx;
-  padding-top: calc(88rpx + 32rpx);
   padding-bottom: 200rpx;
 }
 
@@ -272,6 +269,34 @@
 .add-text {
   font-size: 20rpx;
   font-weight: bold;
+}
+
+.tag-section {
+  margin-bottom: 40rpx;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.tag-item {
+  padding: 10rpx 24rpx;
+  background: #FFFFFF;
+  color: #999999;
+  font-size: 20rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+  border: 2rpx solid #FFE4EC;
+  transition: all 0.3s;
+}
+
+.tag-item.active {
+  background: #F3E5F5;
+  border-color: #D8BFD8;
+  color: #9C27B0;
+  box-shadow: 0 2rpx 8rpx rgba(156, 39, 176, 0.1);
 }
 
 .template-section {

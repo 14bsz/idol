@@ -1,9 +1,9 @@
-<view class="container">
-  <view class="header">
-    <view class="nav-left" bindtap="goBack">
+<view class="container" style="padding-top: {{totalNavHeight}}px;">
+  <view class="header" style="height: {{navHeight + navTop}}px; padding-top: {{navTop}}px;">
+    <view class="nav-left" bindtap="goBack" style="top: {{navTop}}px; height: {{navHeight}}px;">
       <text class="nav-icon">‹</text>
     </view>
-    <view class="nav-title">{{mode === 'edit' ? '编辑日记' : '写日记'}}</view>
+    <view class="nav-title" style="line-height: {{navHeight}}px;">{{mode === 'edit' ? '编辑日记' : '写日记'}}</view>
     <view class="nav-right"></view>
   </view>
 
@@ -56,6 +56,15 @@
       </view>
     </view>
 
+
+    <view class="tag-section">
+      <text class="section-label">追星标签</text>
+      <view class="tag-list">
+        <view class="tag-item {{selectedTags.includes(item) ? 'active' : ''}}" wx:for="{{tags}}" wx:key="*this" bindtap="toggleTag" data-tag="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
 
     <view class="template-section">
       <text class="section-label">排版风格</text>
