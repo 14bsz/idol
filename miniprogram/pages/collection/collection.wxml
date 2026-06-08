@@ -23,13 +23,12 @@
       </view>
     </view>
 
-    <view class="category-tabs" style="display: flex; align-items: center; gap: 8rpx; margin-top: 24rpx; overflow-x: auto; padding-bottom: 8rpx;">
+    <view class="category-tabs" style="display: flex; align-items: center; gap: 12rpx; margin-top: 24rpx; overflow-x: auto; padding-bottom: 8rpx;">
       <block wx:for="{{categories}}" wx:key="*this">
         <view 
           class="tab-item {{selectedCategory === item ? 'active' : ''}}" 
           bindtap="onCategorySelect" 
           data-category="{{item}}"
-          style="padding: 8rpx 16rpx; border-radius: 16rpx; font-size: 12px; font-weight: bold; white-space: nowrap; border: 1rpx solid {{selectedCategory === item ? '#1e293b' : '#f1f5f9'}}; background: {{selectedCategory === item ? '#1e293b' : 'white'}}; color: {{selectedCategory === item ? 'white' : '#94a3b8'}}; {{selectedCategory === item ? 'box-shadow: 0 4rpx 6rpx -1rpx rgba(0,0,0,0.1); transform: scale(1.05);' : ''}}"
         >
           {{item}}
         </view>

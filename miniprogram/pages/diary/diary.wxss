@@ -471,10 +471,10 @@
 
 .tag-filter-item.active {
   background: linear-gradient(135deg, #f472b6, #ec4899) !important;
-  border-color: #ec4899 !important;
+  border-color: transparent !important;
   color: #FFFFFF !important;
-  transform: scale(1.08);
-  box-shadow: 0 6rpx 16rpx rgba(236, 72, 153, 0.4) !important;
+  transform: scale(1);
+  box-shadow: 0 4rpx 12rpx rgba(244, 114, 182, 0.3), 0 2rpx 4rpx rgba(236, 72, 153, 0.1) inset !important;
   font-weight: 600;
 }
 

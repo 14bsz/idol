@@ -48,6 +48,11 @@ const useCloudContainer = (envVersion) => {
   try {
     const systemInfo = wx.getSystemInfoSync();
     // platform 为 'devtools' 表示在开发者工具中，其他（ios/android）表示真机
+    
+    // 🎯 开发优化：如果手机和电脑在同一局域网，可以改为 false
+    // 这样真机预览也能直接访问本地后端，无需频繁部署云托管
+    // return false;  // 取消注释这行，启用真机本地调试
+    
     return systemInfo.platform !== 'devtools';
   } catch (e) {
     return false;
@@ -62,6 +67,13 @@ const getApiBaseUrl = (envVersion) => {
 
 const getUploadUrl = (envVersion) => {
   const currentEnv = envVersion || getRuntimeEnvVersion();
+  
+  // 🎯 真机预览时使用云托管地址
+  // 因为手机无法访问本机的 localhost 或局域网地址
+  if (currentEnv === 'develop' && useCloudContainer(envVersion)) {
+    return UPLOAD_URLS.trial; // 使用云托管的上传地址
+  }
+  
   return UPLOAD_URLS[currentEnv] || UPLOAD_URLS.develop;
 };
 

@@ -228,19 +228,8 @@ Page({
     const tag = e.currentTarget.dataset.tag;
     const { selectedTag, diaries } = this.data;
     
-    console.log('[Tag Select] tag:', tag, 'selectedTag:', selectedTag);
-    console.log('[Tag Select] 事件触发了！');
-    
-    // 立即显示一个提示，验证事件是否触发
-    wx.showToast({ 
-      title: `点击了标签: ${tag}`, 
-      icon: 'none',
-      duration: 1000
-    });
-    
     // 如果点击的是已选中的标签，则取消筛选
     if (selectedTag === tag) {
-      console.log('[Tag Select] 取消筛选');
       this.setData({
         selectedTag: null,
         filteredDiaries: diaries
@@ -250,7 +239,6 @@ Page({
       const filteredDiaries = diaries.filter(d => {
         return d.tags && Array.isArray(d.tags) && d.tags.includes(tag);
       });
-      console.log('[Tag Select] 筛选结果:', filteredDiaries.length, '条日记');
       this.setData({
         selectedTag: tag,
         filteredDiaries
