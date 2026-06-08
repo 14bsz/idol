@@ -1,4 +1,5 @@
 # 云托管部署 Dockerfile（使用预构建的 JAR 包）
+# ⚠️ 重要：此应用需要 Java 17
 FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app

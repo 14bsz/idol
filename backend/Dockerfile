@@ -20,8 +20,11 @@ WORKDIR /app
 COPY --from=builder /app/target/idol-diary-backend-1.0.0.jar app.jar
 
 # 文件上传目录
-RUN mkdir -p uploads
+RUN mkdir -p uploads && chmod 777 uploads
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JVM 参数优化
+ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

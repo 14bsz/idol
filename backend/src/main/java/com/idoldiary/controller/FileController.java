@@ -28,6 +28,12 @@ public class FileController {
     @Value("${file.upload.path:uploads}")
     private String uploadPath;
 
+    // 测试端点 - 验证 FileController 是否被加载
+    @GetMapping("/test")
+    public Result<String> test() {
+        return Result.success("FileController is working!");
+    }
+
     @PostMapping("/upload")
     public Result<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {

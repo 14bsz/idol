@@ -815,16 +815,42 @@ App({
         name: 'file',
         header: header,
         success: (response) => {
-          console.log('[文件上传] 上传成功', response);
-          const data = JSON.parse(response.data);
-          if (data.code === 200) {
-            resolve(data);
-          } else {
-            reject(new Error(data.message || '上传失败'));
+          console.log('[文件上传] 完整响应', {
+            statusCode: response.statusCode,
+            data: response.data,
+            header: response.header
+          });
+          
+          // 检查 HTTP 状态码
+          if (response.statusCode !== 200) {
+            console.error('[文件上传] HTTP错误', {
+              statusCode: response.statusCode,
+              data: response.data
+            });
+            reject(new Error(`上传失败 (HTTP ${response.statusCode}): ${response.data || '服务器错误'}`));
+            return;
+          }
+          
+          // 解析响应数据
+          try {
+            const data = JSON.parse(response.data);
+            console.log('[文件上传] 解析后的数据', data);
+            
+            if (data.code === 200) {
+              resolve(data);
+            } else {
+              reject(new Error(data.message || '上传失败'));
+            }
+          } catch (parseError) {
+            console.error('[文件上传] JSON解析失败', {
+              parseError: parseError.message,
+              rawData: response.data
+            });
+            reject(new Error('服务器响应格式错误'));
           }
         },
         fail: (error) => {
-          console.error('[文件上传] 上传失败', {
+          console.error('[文件上传] 网络请求失败', {
             error: error,
             uploadUrl: this.uploadUrl,
             useCloud: this.useCloud,
