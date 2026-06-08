@@ -6,3 +6,24 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Backend build artifacts
+backend/target/
+*.class
+*.jar
+*.war
+
+# Upload files
+uploads/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Debug files
+.dbg/
+debug-*.md
+
+# Deployment package (optional - uncomment if you don't want to track it)
+# cloud-deploy/

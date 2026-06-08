@@ -800,6 +800,13 @@ App({
         header['Authorization'] = this.globalData.token;
       }
 
+      console.log('[文件上传] 开始上传', {
+        uploadUrl: this.uploadUrl,
+        useCloud: this.useCloud,
+        envVersion: this.envVersion,
+        filePath: filePath
+      });
+
       // 云托管模式仍走 wx.uploadFile，但使用云托管公网 HTTPS 地址
       // wx.cloud.callContainer 不支持文件上传
       wx.uploadFile({
@@ -808,6 +815,7 @@ App({
         name: 'file',
         header: header,
         success: (response) => {
+          console.log('[文件上传] 上传成功', response);
           const data = JSON.parse(response.data);
           if (data.code === 200) {
             resolve(data);
@@ -816,7 +824,12 @@ App({
           }
         },
         fail: (error) => {
-          console.error('文件上传失败', error);
+          console.error('[文件上传] 上传失败', {
+            error: error,
+            uploadUrl: this.uploadUrl,
+            useCloud: this.useCloud,
+            envVersion: this.envVersion
+          });
           reject(new Error('文件上传失败，请检查网络连接'));
         }
       });
