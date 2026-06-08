@@ -764,8 +764,8 @@ App({
   },
 
   prepareIdolMediaForSave(idol) {
-    const avatarSource = idol.avatarRaw || idol.avatar;
-    const bannerSource = idol.bannerImageRaw || idol.bannerImage;
+    const avatarSource = this.getPersistedMediaValue(idol.avatar, idol.avatarRaw);
+    const bannerSource = this.getPersistedMediaValue(idol.bannerImage, idol.bannerImageRaw);
 
     return Promise.all([
       this.uploadMediaIfNeeded(avatarSource),
