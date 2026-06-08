@@ -123,25 +123,10 @@ Page({
   },
 
   uploadAndUpdateAvatar(filePath) {
-    const app = getApp();
     const that = this;
     
     wx.showLoading({ title: '上传中...' });
-    
-    if (app.isTemporaryMediaUrl(filePath)) {
-      app.uploadFile(filePath)
-        .then(res => {
-          const avatarUrl = res.data.url;
-          that.updateUserInfo({ avatarUrl });
-        })
-        .catch(err => {
-          wx.hideLoading();
-          console.error('上传头像失败', err);
-          wx.showToast({ title: '上传失败', icon: 'none' });
-        });
-    } else {
-      that.updateUserInfo({ avatarUrl: filePath });
-    }
+    that.updateUserInfo({ avatarUrl: filePath });
   },
 
   editNickname() {

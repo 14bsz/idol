@@ -153,23 +153,15 @@ Page({
 
     util.showLoading('正在珍藏中...');
     const currentIdol = app.globalData.currentIdol;
-    
-    // 如果是微信临时文件，需要先上传
-    const uploadPromise = app.isTemporaryMediaUrl(imageUrl) 
-      ? app.uploadFile(imageUrl).then(res => res.data.url)
-      : Promise.resolve(imageUrl);
+    const newItem = {
+      idolId: currentIdol.id,
+      imageUrl: imageUrl,
+      category: category,
+      notes: notes,
+      tags: tags.join(',')
+    };
 
-    uploadPromise.then(finalImageUrl => {
-      const newItem = {
-        idolId: currentIdol.id,
-        imageUrl: finalImageUrl,
-        category: category,
-        notes: notes,
-        tags: tags.join(',')
-      };
-
-      return app.saveCollectionToServer(newItem);
-    }).then(() => {
+    app.saveCollectionToServer(newItem).then(() => {
       util.hideLoading();
       util.showToast('珍藏成功', 'success');
       

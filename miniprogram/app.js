@@ -1,4 +1,4 @@
-const { CLOUD_ENV_ID, CLOUD_SERVICE_NAME, getRuntimeEnvVersion, getApiBaseUrl, getUploadUrl, getApiConfigError, useCloudContainer } = require('./utils/env');
+const { CLOUD_ENV_ID, CLOUD_SERVICE_NAME, CLOUD_PUBLIC_BASE_URL, getRuntimeEnvVersion, getApiBaseUrl, getUploadUrl, getApiConfigError, useCloudContainer } = require('./utils/env');
 
 App({
   globalData: {
@@ -19,6 +19,7 @@ App({
   useCloud: false,      // 是否走云托管调用
   apiConfigError: '',
   restoreSessionPromise: null,
+  mediaUrlCache: {},
 
   onLaunch() {
     console.log('[App] 启动，开始初始化');
@@ -76,7 +77,7 @@ App({
       if (token) {
         this.globalData.token = token;
         if (userId) this.globalData.userId = userId;
-        if (userInfo) this.globalData.userInfo = userInfo;
+        if (userInfo) this.globalData.userInfo = this.normalizeUserInfo(userInfo);
       } else {
         this.globalData.authChecked = true;
         this.globalData.userInfo = null;
@@ -99,9 +100,168 @@ App({
     wx.setStorageSync('userInfo', this.globalData.userInfo);
   },
 
+  normalizeUserInfo(userInfo) {
+    if (!userInfo) {
+      return null;
+    }
+    const avatarUrlRaw = userInfo.avatarUrlRaw || userInfo.avatarUrl || '';
+    return {
+      ...userInfo,
+      avatarUrlRaw,
+      avatarUrl: this.resolveMediaUrl(avatarUrlRaw)
+    };
+  },
+
+  refreshUserInfo(userInfo = this.globalData.userInfo) {
+    const normalizedUserInfo = this.normalizeUserInfo(userInfo);
+    this.globalData.userInfo = normalizedUserInfo;
+    return normalizedUserInfo;
+  },
+
+  isCloudFileId(url) {
+    return typeof url === 'string' && /^cloud:\/\//i.test(url);
+  },
+
+  getFileExtension(filePath, fallback = 'jpg') {
+    if (!filePath || typeof filePath !== 'string') {
+      return fallback;
+    }
+    const matched = filePath.match(/\.([a-zA-Z0-9]+)(?:[?#].*)?$/);
+    return matched ? matched[1].toLowerCase() : fallback;
+  },
+
+  buildCloudUploadPath(filePath) {
+    const extension = this.getFileExtension(filePath);
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const userId = this.globalData.userId || 'guest';
+    const randomSuffix = Math.random().toString(36).slice(2, 10);
+    return `upload/${year}/${month}/${day}/${userId}-${Date.now()}-${randomSuffix}.${extension}`;
+  },
+
+  cacheResolvedMediaUrl(sourceUrl, resolvedUrl) {
+    if (!this.isCloudFileId(sourceUrl) || !resolvedUrl) {
+      return;
+    }
+    this.mediaUrlCache[sourceUrl] = resolvedUrl;
+  },
+
+  cacheTempFileUrlResult(fileList = []) {
+    fileList.forEach((item) => {
+      if (item && item.fileID && item.tempFileURL) {
+        this.cacheResolvedMediaUrl(item.fileID, item.tempFileURL);
+      }
+    });
+  },
+
+  chunkArray(list, size = 50) {
+    const chunks = [];
+    for (let i = 0; i < list.length; i += size) {
+      chunks.push(list.slice(i, i + size));
+    }
+    return chunks;
+  },
+
+  warmupMediaUrls(urls = []) {
+    const uniqueCloudIds = [...new Set(
+      urls.filter(url => this.isCloudFileId(url) && !this.mediaUrlCache[url])
+    )];
+
+    if (!uniqueCloudIds.length || !wx.cloud) {
+      return Promise.resolve(this.mediaUrlCache);
+    }
+
+    const tasks = this.chunkArray(uniqueCloudIds, 50).map((fileList) => new Promise((resolve) => {
+      wx.cloud.getTempFileURL({
+        fileList,
+        success: (res) => {
+          this.cacheTempFileUrlResult(res.fileList || []);
+          resolve();
+        },
+        fail: (error) => {
+          console.error('[媒体解析] 获取临时链接失败', error);
+          resolve();
+        }
+      });
+    }));
+
+    return Promise.all(tasks).then(() => this.mediaUrlCache);
+  },
+
+  ensureMediaUrl(url) {
+    if (!this.isCloudFileId(url)) {
+      return Promise.resolve(this.resolveMediaUrl(url));
+    }
+    if (this.mediaUrlCache[url]) {
+      return Promise.resolve(this.mediaUrlCache[url]);
+    }
+    return this.warmupMediaUrls([url]).then(() => this.resolveMediaUrl(url));
+  },
+
+  uploadMediaIfNeeded(sourceUrl) {
+    if (!sourceUrl || !this.isTemporaryMediaUrl(sourceUrl)) {
+      return Promise.resolve(sourceUrl);
+    }
+    return this.uploadFile(sourceUrl).then((uploadRes) => uploadRes.data.url);
+  },
+
+  getPersistedMediaValue(displayUrl, originalUrl) {
+    if (!displayUrl) {
+      return originalUrl || displayUrl;
+    }
+    if (this.isTemporaryMediaUrl(displayUrl) || this.isCloudFileId(displayUrl)) {
+      return displayUrl;
+    }
+    if (originalUrl) {
+      const resolvedOriginalUrl = this.resolveMediaUrl(originalUrl);
+      if (!resolvedOriginalUrl || resolvedOriginalUrl === displayUrl) {
+        return originalUrl;
+      }
+    }
+    return displayUrl;
+  },
+
+  collectIdolMediaRefs(idols = []) {
+    return idols.flatMap(idol => [idol.avatarRaw || idol.avatar, idol.bannerImageRaw || idol.bannerImage].filter(Boolean));
+  },
+
+  collectCollectionMediaRefs(collections = []) {
+    return collections.map(collection => collection.imageUrlRaw || collection.imageUrl).filter(Boolean);
+  },
+
+  collectDiaryMediaRefs(diaries = []) {
+    const refs = [];
+    diaries.forEach((diary) => {
+      let images = diary.images;
+      if (typeof images === 'string') {
+        try {
+          images = JSON.parse(images);
+        } catch (error) {
+          images = [];
+        }
+      }
+      if (!Array.isArray(images)) {
+        return;
+      }
+      images.forEach((item) => {
+        if (typeof item === 'string') {
+          refs.push(item);
+          return;
+        }
+        refs.push(item?.sourceUrl || item?.url);
+      });
+    });
+    return refs.filter(Boolean);
+  },
+
   resolveMediaUrl(url) {
     if (!url) {
       return url;
+    }
+    if (this.isCloudFileId(url)) {
+      return this.mediaUrlCache[url] || '';
     }
     if (/^(https?:|data:|wxfile:|file:)/.test(url)) {
       return url;
@@ -109,7 +269,7 @@ App({
     if (url.startsWith('/')) {
       if (this.useCloud) {
         // 云托管模式：使用公网 HTTPS 地址拼接（文件访问走公网）
-        return 'https://springboot-xxpl-267159-8-1440827759.sh.run.tcloudbase.com' + url;
+        return CLOUD_PUBLIC_BASE_URL + url;
       }
       if (!this.baseUrl) {
         return url;
@@ -120,12 +280,16 @@ App({
   },
 
   normalizeIdol(idol) {
+    const avatarRaw = idol.avatarRaw || idol.avatar;
+    const bannerImageRaw = idol.bannerImageRaw || idol.bannerImage;
     return {
       id: idol.id,
       name: idol.name,
       nickname: idol.nickname,
-      avatar: this.resolveMediaUrl(idol.avatar),
-      bannerImage: this.resolveMediaUrl(idol.bannerImage),
+      avatarRaw,
+      bannerImageRaw,
+      avatar: this.resolveMediaUrl(avatarRaw),
+      bannerImage: this.resolveMediaUrl(bannerImageRaw),
       supportColor: idol.supportColor,
       debutDate: idol.debutDate,
       birthday: idol.birthday,
@@ -134,10 +298,12 @@ App({
   },
 
   normalizeCollection(collection) {
+    const imageUrlRaw = collection.imageUrlRaw || collection.imageUrl;
     return {
       id: collection.id,
       idolId: collection.idolId,
-      imageUrl: this.resolveMediaUrl(collection.imageUrl),
+      imageUrlRaw,
+      imageUrl: this.resolveMediaUrl(imageUrlRaw),
       category: collection.category,
       notes: collection.notes,
       createdAt: collection.createdAt
@@ -148,9 +314,13 @@ App({
     if (!media) {
       return null;
     }
+    const originalUrl = typeof media === 'string'
+      ? media
+      : (media.sourceUrl || media.url || '');
     if (typeof media === 'string') {
       return {
         type: 'image',
+        sourceUrl: media,
         url: this.resolveMediaUrl(media)
       };
     }
@@ -158,7 +328,23 @@ App({
     return {
       ...media,
       type,
-      url: this.resolveMediaUrl(media.url)
+      sourceUrl: originalUrl,
+      url: this.resolveMediaUrl(originalUrl)
+    };
+  },
+
+  serializeDiaryMediaItem(media) {
+    if (!media) {
+      return null;
+    }
+    const sourceUrl = media.sourceUrl || media.url;
+    const persistedUrl = this.getPersistedMediaValue(media.url, sourceUrl);
+    if (!persistedUrl) {
+      return null;
+    }
+    return {
+      type: media.type || 'image',
+      url: persistedUrl
     };
   },
 
@@ -218,7 +404,7 @@ App({
       return false;
     }
     return images.some(item => {
-      const url = typeof item === 'string' ? item : item?.url;
+      const url = typeof item === 'string' ? item : (item?.sourceUrl || item?.url);
       return this.isTemporaryMediaUrl(url);
     });
   },
@@ -230,17 +416,24 @@ App({
 
     return Promise.all(images.map((item) => {
       const media = this.normalizeDiaryMediaItem(item);
-      if (!media || !media.url) {
+      const sourceUrl = media?.sourceUrl || media?.url;
+      if (!media || !sourceUrl) {
         return Promise.resolve(null);
       }
-      if (!this.isTemporaryMediaUrl(media.url)) {
-        return Promise.resolve(media);
+      if (!this.isTemporaryMediaUrl(sourceUrl)) {
+        const persistedUrl = this.getPersistedMediaValue(media.url, sourceUrl);
+        return Promise.resolve({
+          ...media,
+          sourceUrl: persistedUrl,
+          url: this.resolveMediaUrl(persistedUrl)
+        });
       }
-      return this.uploadFile(media.url).then((uploadRes) => ({
+      return this.uploadFile(sourceUrl).then((uploadRes) => ({
         ...media,
-        url: this.resolveMediaUrl(uploadRes.data.url)
+        sourceUrl: uploadRes.data.url,
+        url: uploadRes.data.tempUrl || this.resolveMediaUrl(uploadRes.data.url)
       }));
-    })).then(items => items.filter(item => item && item.url));
+    })).then(items => items.filter(item => item && (item.url || item.sourceUrl)));
   },
 
   ensureDiaryMediaPersisted(diary) {
@@ -331,7 +524,12 @@ App({
 
     this.globalData.authChecked = false;
     this.restoreSessionPromise = this.fetchAllDataFromServer()
-      .then(() => true)
+      .then(() => this.warmupMediaUrls([this.globalData.userInfo?.avatarUrlRaw || this.globalData.userInfo?.avatarUrl]))
+      .then(() => {
+        this.refreshUserInfo();
+        this.saveAuthToStorage();
+        return true;
+      })
       .catch((err) => {
         console.error('恢复登录态失败:', err);
         return false;
@@ -375,14 +573,25 @@ App({
           const { token, userId, nickname, avatarUrl } = data.data;
           this.globalData.token = token;
           this.globalData.userId = userId;
-          this.globalData.userInfo = { nickname, avatarUrl };
+          this.globalData.userInfo = this.normalizeUserInfo({ nickname, avatarUrl });
           this.globalData.authChecked = false;
 
           this.saveAuthToStorage();
 
           this.fetchAllDataFromServer().then(() => {
-            this.globalData.authChecked = true;
-            resolve();
+            this.warmupMediaUrls([this.globalData.userInfo?.avatarUrlRaw || this.globalData.userInfo?.avatarUrl])
+              .then(() => {
+                this.refreshUserInfo();
+                this.saveAuthToStorage();
+                this.globalData.authChecked = true;
+                resolve();
+              })
+              .catch(() => {
+                this.refreshUserInfo();
+                this.saveAuthToStorage();
+                this.globalData.authChecked = true;
+                resolve();
+              });
           }).catch((err) => {
             console.error('从服务器拉取数据失败:', err);
             this.globalData.authChecked = true;
@@ -449,29 +658,38 @@ App({
     return new Promise((resolve, reject) => {
       this.request({ url: '/idols', method: 'GET' })
         .then((res) => {
-          if (res.data && res.data.length > 0) {
-            this.globalData.idols = res.data.map(idol => this.normalizeIdol(idol));
-            if (this.globalData.idols.length > 0) {
-              let savedCurrentIdol = null;
-              try {
-                savedCurrentIdol = wx.getStorageSync('currentIdol');
-              } catch (e) {
-                console.error('读取保存的当前爱豆失败', e);
-              }
-              
-              if (savedCurrentIdol && savedCurrentIdol.id) {
-                const matchedIdol = this.globalData.idols.find(i => i.id == savedCurrentIdol.id);
-                if (matchedIdol) {
-                  this.globalData.currentIdol = matchedIdol;
+          const idols = res.data || [];
+          this.warmupMediaUrls(this.collectIdolMediaRefs(idols)).then(() => {
+            if (idols.length > 0) {
+              this.globalData.idols = idols.map(idol => this.normalizeIdol(idol));
+              if (this.globalData.idols.length > 0) {
+                let savedCurrentIdol = null;
+                try {
+                  savedCurrentIdol = wx.getStorageSync('currentIdol');
+                } catch (e) {
+                  console.error('读取保存的当前爱豆失败', e);
+                }
+
+                if (savedCurrentIdol && savedCurrentIdol.id) {
+                  const matchedIdol = this.globalData.idols.find(i => i.id == savedCurrentIdol.id);
+                  if (matchedIdol) {
+                    this.globalData.currentIdol = matchedIdol;
+                  } else {
+                    this.globalData.currentIdol = this.globalData.idols[0];
+                  }
                 } else {
                   this.globalData.currentIdol = this.globalData.idols[0];
                 }
-              } else {
-                this.globalData.currentIdol = this.globalData.idols[0];
               }
+            } else {
+              this.globalData.idols = [];
             }
-          }
-          resolve();
+            resolve();
+          }).catch((error) => {
+            console.error('预热爱豆媒体失败:', error);
+            this.globalData.idols = idols.map(idol => this.normalizeIdol(idol));
+            resolve();
+          });
         })
         .catch((err) => {
           console.error('获取爱豆列表失败:', err);
@@ -484,10 +702,15 @@ App({
     return new Promise((resolve, reject) => {
       this.request({ url: '/diaries', method: 'GET' })
         .then((res) => {
-          if (res.data) {
-            this.globalData.diaries = res.data.map(diary => this.normalizeDiary(diary));
-          }
-          resolve();
+          const diaries = res.data || [];
+          this.warmupMediaUrls(this.collectDiaryMediaRefs(diaries)).then(() => {
+            this.globalData.diaries = diaries.map(diary => this.normalizeDiary(diary));
+            resolve();
+          }).catch((error) => {
+            console.error('预热日记媒体失败:', error);
+            this.globalData.diaries = diaries.map(diary => this.normalizeDiary(diary));
+            resolve();
+          });
         })
         .catch((err) => {
           console.error('获取日记列表失败:', err);
@@ -500,10 +723,15 @@ App({
     return new Promise((resolve, reject) => {
       this.request({ url: '/collections', method: 'GET' })
         .then((res) => {
-          if (res.data) {
-            this.globalData.collections = res.data.map(collect => this.normalizeCollection(collect));
-          }
-          resolve();
+          const collections = res.data || [];
+          this.warmupMediaUrls(this.collectCollectionMediaRefs(collections)).then(() => {
+            this.globalData.collections = collections.map(collect => this.normalizeCollection(collect));
+            resolve();
+          }).catch((error) => {
+            console.error('预热收藏媒体失败:', error);
+            this.globalData.collections = collections.map(collect => this.normalizeCollection(collect));
+            resolve();
+          });
         })
         .catch((err) => {
           console.error('获取收藏列表失败:', err);
@@ -535,36 +763,56 @@ App({
     });
   },
 
+  prepareIdolMediaForSave(idol) {
+    const avatarSource = idol.avatarRaw || idol.avatar;
+    const bannerSource = idol.bannerImageRaw || idol.bannerImage;
+
+    return Promise.all([
+      this.uploadMediaIfNeeded(avatarSource),
+      this.uploadMediaIfNeeded(bannerSource)
+    ]).then(([avatarRaw, bannerImageRaw]) => ({
+      ...idol,
+      avatarRaw,
+      avatar: this.resolveMediaUrl(avatarRaw) || avatarRaw,
+      bannerImageRaw,
+      bannerImage: this.resolveMediaUrl(bannerImageRaw) || bannerImageRaw
+    }));
+  },
+
   saveIdolToServer(idol) {
     return new Promise((resolve, reject) => {
-      const data = {
-        name: idol.name,
-        nickname: idol.nickname,
-        avatar: idol.avatar,
-        bannerImage: idol.bannerImage,
-        supportColor: idol.supportColor,
-        debutDate: idol.debutDate,
-        birthday: idol.birthday,
-        entryDate: idol.entryDate
-      };
-      
-      if (idol.id) {
-        this.request({ 
-          url: '/idols/' + idol.id, 
-          method: 'PUT', 
-          data 
-        }).then((res) => {
-          this.fetchIdolsFromServer().then(() => resolve(res));
-        }).catch(reject);
-      } else {
-        this.request({ 
-          url: '/idols', 
-          method: 'POST', 
-          data 
-        }).then((res) => {
-          this.fetchIdolsFromServer().then(() => resolve(res));
-        }).catch(reject);
-      }
+      this.prepareIdolMediaForSave(idol)
+        .then((preparedIdol) => {
+          const data = {
+            name: preparedIdol.name,
+            nickname: preparedIdol.nickname,
+            avatar: this.getPersistedMediaValue(preparedIdol.avatar, preparedIdol.avatarRaw),
+            bannerImage: this.getPersistedMediaValue(preparedIdol.bannerImage, preparedIdol.bannerImageRaw),
+            supportColor: preparedIdol.supportColor,
+            debutDate: preparedIdol.debutDate,
+            birthday: preparedIdol.birthday,
+            entryDate: preparedIdol.entryDate
+          };
+          
+          if (preparedIdol.id) {
+            this.request({ 
+              url: '/idols/' + preparedIdol.id, 
+              method: 'PUT', 
+              data 
+            }).then((res) => {
+              this.fetchIdolsFromServer().then(() => resolve(res));
+            }).catch(reject);
+          } else {
+            this.request({ 
+              url: '/idols', 
+              method: 'POST', 
+              data 
+            }).then((res) => {
+              this.fetchIdolsFromServer().then(() => resolve(res));
+            }).catch(reject);
+          }
+        })
+        .catch(reject);
     });
   },
 
@@ -587,7 +835,7 @@ App({
             mood: diary.mood,
             template: diary.template,
             tags: diary.tags || [],
-            images: preparedImages
+            images: preparedImages.map(item => this.serializeDiaryMediaItem(item)).filter(Boolean)
           };
           
           if (diary.id) {
@@ -629,31 +877,41 @@ App({
 
   saveCollectionToServer(collection) {
     return new Promise((resolve, reject) => {
-      const data = {
-        idolId: collection.idolId,
-        imageUrl: collection.imageUrl,
-        category: collection.category,
-        notes: collection.notes,
-        tags: collection.tags || ''
-      };
-      
-      if (collection.id) {
-        this.request({ 
-          url: '/collections/' + collection.id, 
-          method: 'PUT', 
-          data 
-        }).then((res) => {
-          this.fetchCollectionsFromServer().then(() => resolve(res));
-        }).catch(reject);
-      } else {
-        this.request({ 
-          url: '/collections', 
-          method: 'POST', 
-          data 
-        }).then((res) => {
-          this.fetchCollectionsFromServer().then(() => resolve(res));
-        }).catch(reject);
-      }
+      const imageSource = collection.imageUrlRaw || collection.imageUrl;
+      this.uploadMediaIfNeeded(imageSource)
+        .then((imageUrlRaw) => {
+          const preparedCollection = {
+            ...collection,
+            imageUrlRaw,
+            imageUrl: this.resolveMediaUrl(imageUrlRaw) || imageUrlRaw
+          };
+          const data = {
+            idolId: preparedCollection.idolId,
+            imageUrl: this.getPersistedMediaValue(preparedCollection.imageUrl, preparedCollection.imageUrlRaw),
+            category: preparedCollection.category,
+            notes: preparedCollection.notes,
+            tags: preparedCollection.tags || ''
+          };
+          
+          if (preparedCollection.id) {
+            this.request({ 
+              url: '/collections/' + preparedCollection.id, 
+              method: 'PUT', 
+              data 
+            }).then((res) => {
+              this.fetchCollectionsFromServer().then(() => resolve(res));
+            }).catch(reject);
+          } else {
+            this.request({ 
+              url: '/collections', 
+              method: 'POST', 
+              data 
+            }).then((res) => {
+              this.fetchCollectionsFromServer().then(() => resolve(res));
+            }).catch(reject);
+          }
+        })
+        .catch(reject);
     });
   },
 
@@ -708,23 +966,46 @@ App({
   updateUserInfo(updateData) {
     return new Promise((resolve, reject) => {
       const currentUserInfo = this.globalData.userInfo || {};
-      const data = {
-        ...currentUserInfo,
-        ...updateData
-      };
-      
-      this.request({ 
-        url: '/auth/user/info', 
-        method: 'PUT', 
-        data 
-      }).then((res) => {
-        this.globalData.userInfo = {
-          ...this.globalData.userInfo,
-          ...updateData
-        };
-        this.saveAuthToStorage();
-        resolve(res);
-      }).catch(reject);
+      const avatarSource = updateData.avatarUrlRaw || updateData.avatarUrl || currentUserInfo.avatarUrlRaw || currentUserInfo.avatarUrl;
+      this.uploadMediaIfNeeded(avatarSource)
+        .then((avatarUrlRaw) => {
+          const mergedUserInfo = this.normalizeUserInfo({
+            ...currentUserInfo,
+            ...updateData,
+            avatarUrlRaw,
+            avatarUrl: avatarUrlRaw
+          });
+          const data = {
+            ...mergedUserInfo,
+            avatarUrl: this.getPersistedMediaValue(mergedUserInfo?.avatarUrl, mergedUserInfo?.avatarUrlRaw)
+          };
+          delete data.avatarUrlRaw;
+          
+          this.request({ 
+            url: '/auth/user/info', 
+            method: 'PUT', 
+            data 
+          }).then((res) => {
+            this.warmupMediaUrls([data.avatarUrl])
+              .then(() => {
+                this.globalData.userInfo = this.normalizeUserInfo({
+                  ...mergedUserInfo,
+                  avatarUrl: data.avatarUrl
+                });
+                this.saveAuthToStorage();
+                resolve(res);
+              })
+              .catch(() => {
+                this.globalData.userInfo = this.normalizeUserInfo({
+                  ...mergedUserInfo,
+                  avatarUrl: data.avatarUrl
+                });
+                this.saveAuthToStorage();
+                resolve(res);
+              });
+          }).catch(reject);
+        })
+        .catch(reject);
     });
   },
 
@@ -787,6 +1068,10 @@ App({
   },
 
   uploadFile(filePath) {
+    if (this.useCloud && wx.cloud) {
+      return this.uploadFileToCloudStorage(filePath);
+    }
+
     return new Promise((resolve, reject) => {
       const apiError = this.ensureApiReady('上传文件');
       if (apiError) {
@@ -858,6 +1143,45 @@ App({
           });
           reject(new Error('文件上传失败，请检查网络连接'));
         }
+      });
+    });
+  },
+
+  uploadFileToCloudStorage(filePath) {
+    return new Promise((resolve, reject) => {
+      if (!wx.cloud) {
+        reject(new Error('当前环境不支持云存储上传'));
+        return;
+      }
+
+      const cloudPath = this.buildCloudUploadPath(filePath);
+      console.log('[云存储上传] 开始上传', {
+        cloudPath,
+        filePath,
+        envVersion: this.envVersion
+      });
+
+      wx.cloud.uploadFile({
+        cloudPath,
+        filePath
+      }).then((uploadRes) => {
+        const fileId = uploadRes.fileID;
+        return this.ensureMediaUrl(fileId).then((tempUrl) => {
+          resolve({
+            code: 200,
+            message: 'success',
+            data: {
+              url: fileId,
+              fileId,
+              tempUrl,
+              filename: cloudPath.split('/').pop(),
+              cloudPath
+            }
+          });
+        });
+      }).catch((error) => {
+        console.error('[云存储上传] 失败', error);
+        reject(new Error('文件上传失败，请稍后重试'));
       });
     });
   },

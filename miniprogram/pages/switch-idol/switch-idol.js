@@ -76,7 +76,7 @@ Page({
         editingIdol: idol,
         newName: idol.name || '',
         newNickname: idol.nickname || '',
-        newAvatar: idol.avatar || '',
+        newAvatar: idol.avatarRaw || idol.avatar || '',
         newEntryDate: idol.entryDate || util.formatDate(new Date().toISOString()),
         newBirthday: idol.birthday || '1997-09-01',
         newDebutDate: idol.debutDate || '2013-06-13'
@@ -119,14 +119,7 @@ Page({
       sourceType: ['album', 'camera'],
       success(res) {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        wx.getFileSystemManager().readFile({
-          filePath: tempFilePath,
-          encoding: 'base64',
-          success(fileRes) {
-            const base64 = 'data:image/jpeg;base64,' + fileRes.data;
-            that.setData({ newAvatar: base64 });
-          }
-        });
+        that.setData({ newAvatar: tempFilePath });
       }
     });
   },

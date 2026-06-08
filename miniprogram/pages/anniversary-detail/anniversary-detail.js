@@ -89,14 +89,27 @@ Page({
     const customCover = this.getCustomCoverImage(currentIdol.id, anniversaryDetail.id, anniversaryDetail.isCustom);
     const defaultBg = this.resolveBackgroundImage(currentIdol);
 
-    this.setData({
-      currentIdol,
-      anniversaryDetail,
-      backgroundImage: customCover || defaultBg,
-      displayFullDate: this.formatFullDate(anniversaryDetail.date)
-    });
+    const applyData = (backgroundImage) => {
+      this.setData({
+        currentIdol,
+        anniversaryDetail,
+        backgroundImage: backgroundImage || defaultBg,
+        displayFullDate: this.formatFullDate(anniversaryDetail.date)
+      });
 
-    this.loadReminderStatus(anniversaryDetail);
+      this.loadReminderStatus(anniversaryDetail);
+    };
+
+    if (customCover && app.isCloudFileId && app.isCloudFileId(customCover)) {
+      app.ensureMediaUrl(customCover).then((resolvedUrl) => {
+        applyData(resolvedUrl);
+      }).catch(() => {
+        applyData(defaultBg);
+      });
+      return;
+    }
+
+    applyData(customCover || defaultBg);
   },
 
   getAnniversaryDetail(idol, id, isCustom) {
@@ -248,10 +261,10 @@ Page({
         const app = getApp();
         app.uploadFile(tempFilePath).then((uploadRes) => {
           wx.hideLoading();
-          const imageUrl = app.resolveMediaUrl(uploadRes.data.url);
+          const imageUrl = uploadRes.data.tempUrl || app.resolveMediaUrl(uploadRes.data.url);
           const detail = that.data.anniversaryDetail;
           const idol = that.data.currentIdol;
-          that.setCustomCoverImage(idol.id, detail.id, detail.isCustom, imageUrl);
+          that.setCustomCoverImage(idol.id, detail.id, detail.isCustom, uploadRes.data.url);
           that.setData({ backgroundImage: imageUrl });
           wx.showToast({ title: '封面已更新', icon: 'success' });
         }).catch((err) => {

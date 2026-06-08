@@ -3,6 +3,7 @@
 // ────────────────────────────────────────────────
 const CLOUD_ENV_ID = 'prod-d7gv8c42oa25aafb0';       // 云托管环境 ID
 const CLOUD_SERVICE_NAME = 'springboot-h9k1';          // 云托管服务名
+const CLOUD_PUBLIC_BASE_URL = 'https://springboot-h9k1-267159-8-1440827759.sh.run.tcloudbase.com';
 
 // 开发环境直接访问本地后端（HTTP，无需配置合法域名）
 const API_BASE_URLS = {
@@ -12,11 +13,11 @@ const API_BASE_URLS = {
   release: ''
 };
 
-// 云托管文件上传地址（uploadFile 不支持 callContainer，仍走 HTTPS）
+// 云托管文件访问/上传回退地址
 const UPLOAD_URLS = {
   develop: 'http://192.168.111.1:8080/api/files/upload',
-  trial: 'https://springboot-xxpl-267159-8-1440827759.sh.run.tcloudbase.com/api/files/upload',
-  release: 'https://springboot-xxpl-267159-8-1440827759.sh.run.tcloudbase.com/api/files/upload'
+  trial: `${CLOUD_PUBLIC_BASE_URL}/api/files/upload`,
+  release: `${CLOUD_PUBLIC_BASE_URL}/api/files/upload`
 };
 
 // 🔧 临时配置：真机预览是否使用本地上传
@@ -119,6 +120,7 @@ const getApiConfigError = (baseUrl, envVersion) => {
 module.exports = {
   CLOUD_ENV_ID,
   CLOUD_SERVICE_NAME,
+  CLOUD_PUBLIC_BASE_URL,
   getRuntimeEnvVersion,
   getApiBaseUrl,
   getUploadUrl,
