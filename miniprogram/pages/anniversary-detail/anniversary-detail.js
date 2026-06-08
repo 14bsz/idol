@@ -8,6 +8,7 @@ Page({
     displayFullDate: '',
     showEditModal: false,
     subscribeConfig: null,
+    navPaddingTop: 0,
     reminderStatus: {
       wechatReminder: false,
       calendarReminder: false
@@ -23,10 +24,26 @@ Page({
   },
 
   onLoad(options) {
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
     this.setData({
       scheduleId: options.id || '',
-      isCustom: options.isCustom === 'true'
+      isCustom: options.isCustom === 'true',
+      navPaddingTop: menuButtonInfo.top
     });
+
+    // 从分享链接打开时，确保数据已加载
+    const app = getApp();
+    app.loadDataFromStorage();
+
+    // 如果有 idolId 参数，先设置 currentIdol
+    if (options.idolId && !app.globalData.currentIdol) {
+      const idols = app.globalData.idols || [];
+      const foundIdol = idols.find(i => String(i.id) === String(options.idolId));
+      if (foundIdol) {
+        app.globalData.currentIdol = foundIdol;
+      }
+    }
+
     this.loadData();
     this.preloadSubscribeConfig();
   },
@@ -274,12 +291,19 @@ Page({
   },
 
   goBack() {
-    wx.navigateBack();
+    // 检查页面栈，如果只有当前页，就返回首页
+    const pages = getCurrentPages();
+    if (pages.length <= 1) {
+      wx.switchTab({ url: '/pages/diary/diary' });
+    } else {
+      wx.navigateBack();
+    }
   },
 
   onShareAppMessage() {
     const detail = this.data.anniversaryDetail;
-    if (!detail) {
+    const idol = this.data.currentIdol;
+    if (!detail || !idol) {
       return {
         title: '纪念日详情',
         path: '/pages/anniversary/anniversary'
@@ -288,14 +312,15 @@ Page({
 
     return {
       title: `${detail.title} | 还有 ${detail.days} 天`,
-      path: `/pages/anniversary-detail/anniversary-detail?id=${encodeURIComponent(detail.id)}&isCustom=${detail.isCustom ? 'true' : 'false'}`,
+      path: `/pages/anniversary-detail/anniversary-detail?id=${encodeURIComponent(detail.id)}&isCustom=${detail.isCustom ? 'true' : 'false'}&idolId=${encodeURIComponent(idol.id)}`,
       imageUrl: this.data.backgroundImage
     };
   },
 
   onShareTimeline() {
     const detail = this.data.anniversaryDetail;
-    if (!detail) {
+    const idol = this.data.currentIdol;
+    if (!detail || !idol) {
       return {
         title: '纪念日详情'
       };
@@ -303,7 +328,7 @@ Page({
 
     return {
       title: `${detail.title} | 还有 ${detail.days} 天`,
-      query: `id=${encodeURIComponent(detail.id)}&isCustom=${detail.isCustom ? 'true' : 'false'}`
+      query: `id=${encodeURIComponent(detail.id)}&isCustom=${detail.isCustom ? 'true' : 'false'}&idolId=${encodeURIComponent(idol.id)}`
     };
   },
 

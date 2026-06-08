@@ -1,6 +1,6 @@
 <view class="container">
   <view wx:if="{{anniversaryDetail}}" class="page-shell">
-    <view class="header">
+    <view class="header" style="padding-top: {{navPaddingTop}}px;">
       <view class="header-left" bindtap="goBack">
         <text class="back-icon">‹</text>
       </view>

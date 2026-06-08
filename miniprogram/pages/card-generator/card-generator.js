@@ -190,9 +190,13 @@ Page({
 
   buildSharePayload() {
     const imageUrl = this.data.shareImage || '';
+    const idol = this.data.idol;
+    const entry = this.data.entry;
     const payload = {
       title: this.data.shareTitle || '爱豆时光日记',
-      path: '/pages/diary/diary'
+      path: idol && entry 
+        ? `/pages/diary-detail/diary-detail?id=${encodeURIComponent(entry.id)}&idolId=${encodeURIComponent(idol.id)}` 
+        : '/pages/diary/diary'
     };
 
     if (imageUrl) {

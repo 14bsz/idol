@@ -9,31 +9,35 @@ const MOODS = [
   { id: 'crying', label: '破防', icon: '⭐' }
 ];
 
-const TAGS = ['演唱会', '生日', '打歌', '综艺', '直播', '神图', '语录', '日常'];
-
-const TEMPLATES = [
-  { id: 'default', name: '温柔' },
-  { id: 'serif', name: '文艺' },
-  { id: 'bold', name: '热烈' }
+const TAGS = [
+  { name: '演唱会', selected: false },
+  { name: '生日', selected: false },
+  { name: '打歌', selected: false },
+  { name: '综艺', selected: false },
+  { name: '直播', selected: false },
+  { name: '神图', selected: false },
+  { name: '语录', selected: false },
+  { name: '日常', selected: false }
 ];
+
+
 
 Page({
   data: {
     content: '',
     mood: 'heart',
-    template: 'default',
     images: [],
-    selectedTags: [],
     moods: MOODS,
-    tags: TAGS,
-    templates: TEMPLATES,
+    tags: [],
     mode: 'create',
     editingDiary: null,
     totalMediaCount: 0,
     canSave: false,
     navHeight: 0,
     navTop: 0,
-    totalNavHeight: 0
+    totalNavHeight: 0,
+    selectedTagCount: 0,
+    maxTagCount: 3
   },
 
   updateCanSave() {
@@ -49,7 +53,9 @@ Page({
     const navTop = menuButtonInfo.top;
     const navHeight = menuButtonInfo.height;
     const totalNavHeight = systemInfo.statusBarHeight + navHeight + (menuButtonInfo.top - systemInfo.statusBarHeight) * 2;
-    this.setData({ navTop, navHeight, totalNavHeight });
+
+    // 初始化标签
+    let tags = TAGS.map(tag => ({ ...tag }));
 
     if (options.mode === 'edit') {
       const app = getApp();
@@ -61,20 +67,53 @@ Page({
           }
           return img;
         });
+
+        // 设置编辑模式下的标签选中状态
+        const savedTags = diary.tags || [];
+        
+        // 先处理预设标签
+        tags = tags.map(tag => ({
+          ...tag,
+          selected: savedTags.includes(tag.name)
+        }));
+
+        // 添加自定义标签（不在预设标签中的）
+        const presetTagNames = TAGS.map(t => t.name);
+        savedTags.forEach(tagName => {
+          if (!presetTagNames.includes(tagName)) {
+            tags.push({
+              name: tagName,
+              selected: true,
+              isCustom: true
+            });
+          }
+        });
         
         this.setData({
           mode: 'edit',
           editingDiary: diary,
           content: diary.content,
           mood: diary.mood,
-          template: diary.template,
           images: formattedImages,
-          selectedTags: diary.tags || [],
-          totalMediaCount: formattedImages.length
+          tags: tags,
+          totalMediaCount: formattedImages.length,
+          navTop,
+          navHeight,
+          totalNavHeight
         }, () => {
           this.updateCanSave();
+          this.updateSelectedTagCount();
         });
       }
+    } else {
+      this.setData({
+        tags: tags,
+        navTop,
+        navHeight,
+        totalNavHeight
+      }, () => {
+        this.updateSelectedTagCount();
+      });
     }
   },
 
@@ -89,22 +128,106 @@ Page({
     this.setData({ mood });
   },
 
-  selectTemplate(e) {
-    const template = e.currentTarget.dataset.id;
-    this.setData({ template });
-  },
-
   toggleTag(e) {
-    const tag = e.currentTarget.dataset.tag;
-    let { selectedTags } = this.data;
+    const index = e.currentTarget.dataset.index;
+    let { tags, maxTagCount } = this.data;
+    const tag = tags[index];
     
-    if (selectedTags.includes(tag)) {
-      selectedTags = selectedTags.filter(t => t !== tag);
+    // 如果是取消选中，直接操作
+    if (tag.selected) {
+      tag.selected = false;
     } else {
-      selectedTags.push(tag);
+      // 如果是选中，检查数量
+      const selectedCount = tags.filter(t => t.selected).length;
+      if (selectedCount >= maxTagCount) {
+        wx.showToast({ 
+          title: `最多选${maxTagCount}个标签`, 
+          icon: 'none',
+          duration: 1500
+        });
+        return;
+      }
+      tag.selected = true;
     }
     
-    this.setData({ selectedTags });
+    this.setData({ tags: [...tags] });
+    this.updateSelectedTagCount();
+  },
+
+  updateSelectedTagCount() {
+    const { tags } = this.data;
+    const count = tags.filter(t => t.selected).length;
+    this.setData({ selectedTagCount: count });
+  },
+
+  showAddCustomTag() {
+    wx.showModal({
+      title: '添加自定义标签',
+      editable: true,
+      placeholderText: '输入标签名称（最多6字）',
+      confirmText: '添加',
+      confirmColor: '#EC4899',
+      success: (res) => {
+        if (res.confirm && res.content && res.content.trim()) {
+          this.addCustomTag(res.content.trim());
+        }
+      }
+    });
+  },
+
+  addCustomTag(tagName) {
+    if (tagName.length > 6) {
+      wx.showToast({ title: '标签最多6个字', icon: 'none' });
+      return;
+    }
+
+    let { tags } = this.data;
+    
+    // 检查标签是否已存在
+    const existingTag = tags.find(tag => tag.name === tagName);
+    if (existingTag) {
+      if (!existingTag.selected) {
+        existingTag.selected = true;
+        this.setData({ tags: [...tags] });
+      }
+      wx.showToast({ title: '标签已存在', icon: 'none' });
+      return;
+    }
+
+    // 添加新标签并自动选中
+    const newTag = {
+      name: tagName,
+      selected: true,
+      isCustom: true
+    };
+    tags.push(newTag);
+    this.setData({ tags: [...tags] });
+    this.updateSelectedTagCount();
+    wx.showToast({ title: '标签添加成功', icon: 'success' });
+  },
+
+  deleteCustomTag(e) {
+    e.stopPropagation();
+    const index = e.currentTarget.dataset.index;
+    let { tags } = this.data;
+    
+    wx.showModal({
+      title: '删除标签',
+      content: '确定删除这个标签吗？',
+      confirmText: '删除',
+      confirmColor: '#DC2626',
+      success: (res) => {
+        if (res.confirm) {
+          tags.splice(index, 1);
+          this.setData({ tags: [...tags] });
+          this.updateSelectedTagCount();
+        }
+      }
+    });
+  },
+
+  getSelectedTags() {
+    return this.data.tags.filter(tag => tag.selected).map(tag => tag.name);
   },
 
   showChooseMedia() {
@@ -169,7 +292,8 @@ Page({
   },
 
   saveDiary() {
-    const { content, mood, template, images, selectedTags, mode, editingDiary } = this.data;
+    const { content, mood, images, mode, editingDiary } = this.data;
+    const selectedTags = this.getSelectedTags();
     
     if (!content.trim()) {
       util.showToast('请写点什么吧');
@@ -195,7 +319,6 @@ Page({
         content: content.trim(),
         images: images,
         mood: mood,
-        template: template,
         tags: selectedTags
       };
       
@@ -210,16 +333,13 @@ Page({
         setTimeout(() => wx.navigateBack(), 1000);
       });
     } else {
-      const today = new Date();
       const newDiary = {
         id: null,
         idolId: currentIdol.id,
         content: content.trim(),
         images: images,
         mood: mood,
-        template: template,
-        tags: selectedTags,
-        createdAt: util.formatDate(today.toISOString())
+        tags: selectedTags
       };
 
       app.saveDiaryToServer(newDiary).then((savedDiary) => {

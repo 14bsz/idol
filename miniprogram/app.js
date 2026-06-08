@@ -21,11 +21,31 @@ App({
   restoreSessionPromise: null,
 
   onLaunch() {
+    console.log('[App] 启动，开始初始化');
     this.initApiConfig();
+    console.log('[App] API配置完成:', {
+      envVersion: this.envVersion,
+      useCloud: this.useCloud,
+      baseUrl: this.baseUrl,
+      uploadUrl: this.uploadUrl,
+      apiConfigError: this.apiConfigError
+    });
+    
     // 初始化云开发（云托管调用依赖 wx.cloud）
     if (wx.cloud) {
-      wx.cloud.init({ env: CLOUD_ENV_ID, traceUser: true });
+      try {
+        wx.cloud.init({ 
+          env: CLOUD_ENV_ID, 
+          traceUser: true 
+        });
+        console.log('[App] 云开发初始化成功, env:', CLOUD_ENV_ID);
+      } catch (e) {
+        console.error('[App] 云开发初始化失败:', e);
+      }
+    } else {
+      console.warn('[App] wx.cloud 不可用，可能影响云托管功能');
     }
+    
     this.loadAuthFromStorage();
     this.restoreSession();
   },
@@ -179,7 +199,10 @@ App({
       images: imagesArray
         .map(item => this.normalizeDiaryMediaItem(item))
         .filter(item => item && item.url),
-      createdAt: diary.createdAt
+      pinned: diary.pinned || 0,
+      createdAt: diary.createdAt,
+      createTime: diary.createTime,
+      updateTime: diary.updateTime
     };
   },
 
@@ -834,18 +857,22 @@ App({
 
       if (this.useCloud) {
         // ── 云托管调用 ──
+        const requestPath = '/api' + options.url;
+        console.log('[云托管请求] path:', requestPath, 'method:', options.method, 'data:', JSON.stringify(options.data));
+        
         wx.cloud.callContainer({
           config: { env: CLOUD_ENV_ID },
-          path: '/api' + options.url,
+          path: requestPath,
           header: { ...headers, 'X-WX-SERVICE': CLOUD_SERVICE_NAME },
           method: options.method || 'GET',
           data: options.data,
           success: (res) => {
+            console.log('[云托管响应] statusCode:', res.statusCode, 'data:', JSON.stringify(res.data));
             handleResponse(res.statusCode, res.data);
           },
           fail: (error) => {
-            console.error('接口请求失败（云托管）', error);
-            reject(new Error('网络请求失败，请稍后重试'));
+            console.error('[云托管请求失败] path:', requestPath, 'error:', JSON.stringify(error));
+            reject(new Error('网络请求失败: ' + (error.errMsg || '请稍后重试')));
           }
         });
       } else {

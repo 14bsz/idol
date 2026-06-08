@@ -27,21 +27,24 @@
     <view wx:if="{{allTags.length > 0}}" class="tag-filter-section">
       <view class="tag-filter-header">
         <text class="tag-filter-title">🏷️ 按标签筛选</text>
-        <text wx:if="{{selectedTag}}" class="tag-clear-btn" bindtap="clearTagFilter">清除</text>
+        <text wx:if="{{selectedTag}}" class="tag-clear-btn" catchtap="clearTagFilter">清除</text>
       </view>
-      <scroll-view class="tag-filter-scroll" scroll-x enable-flex>
+      <view class="tag-filter-container">
         <view class="tag-filter-list">
           <view 
-            class="tag-filter-item {{selectedTag === item ? 'active' : ''}}" 
             wx:for="{{allTags}}" 
             wx:key="*this"
-            bindtap="onTagSelect"
+            class="tag-filter-item {{selectedTag === item ? 'active' : ''}}" 
+            catchtap="onTagSelect"
             data-tag="{{item}}"
+            hover-class="tag-filter-item-hover"
+            hover-start-time="0"
+            hover-stay-time="100"
           >
             <text class="tag-filter-text">{{item}}</text>
           </view>
         </view>
-      </scroll-view>
+      </view>
       <view wx:if="{{selectedTag}}" class="tag-filter-result">
         <text class="tag-filter-result-text">共找到 {{filteredDiaries.length}} 条相关日记</text>
       </view>

@@ -58,19 +58,18 @@
 
 
     <view class="tag-section">
-      <text class="section-label">追星标签</text>
-      <view class="tag-list">
-        <view class="tag-item {{selectedTags.includes(item) ? 'active' : ''}}" wx:for="{{tags}}" wx:key="*this" bindtap="toggleTag" data-tag="{{item}}">
-          {{item}}
-        </view>
+      <view class="tag-header">
+        <text class="section-label">追星标签</text>
+        <text class="tag-count">已选 {{selectedTagCount}}/3</text>
       </view>
-    </view>
-
-    <view class="template-section">
-      <text class="section-label">排版风格</text>
-      <view class="template-list">
-        <view class="template-item {{template === item.id ? 'active' : ''}}" wx:for="{{templates}}" wx:key="id" bindtap="selectTemplate" data-id="{{item.id}}">
-          {{item.name}}
+      <view class="tag-list">
+        <view class="tag-item {{item.selected ? 'active' : ''}} {{item.isCustom ? 'custom-tag' : ''}}" wx:for="{{tags}}" wx:key="name" bindtap="toggleTag" data-index="{{index}}">
+          <text>{{item.name}}</text>
+          <text wx:if="{{item.isCustom}}" class="custom-tag-delete" catchtap="deleteCustomTag" data-index="{{index}}">×</text>
+        </view>
+        <view class="tag-item add-tag-btn" bindtap="showAddCustomTag">
+          <text class="add-tag-icon">+</text>
+          <text>添加标签</text>
         </view>
       </view>
     </view>

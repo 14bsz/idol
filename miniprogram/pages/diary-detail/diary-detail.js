@@ -36,6 +36,20 @@ Page({
       diaryId: options.id,
       navPaddingTop: menuButtonInfo.top
     });
+
+    // 从分享链接打开时，确保数据已加载
+    const app = getApp();
+    app.loadDataFromStorage();
+
+    // 如果有 idolId 参数，先设置 currentIdol
+    if (options.idolId && !app.globalData.currentIdol) {
+      const idols = app.globalData.idols || [];
+      const foundIdol = idols.find(i => String(i.id) === String(options.idolId));
+      if (foundIdol) {
+        app.globalData.currentIdol = foundIdol;
+      }
+    }
+
     this.loadData();
   },
 
@@ -43,6 +57,18 @@ Page({
     if (this.data.diaryId) {
       this.loadData();
     }
+  },
+
+  formatDateTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
   },
 
   loadData() {
@@ -69,7 +95,7 @@ Page({
 
       this.setData({
         diary,
-        displayDate: diary.createdAt.replace(/-/g, '.'),
+        displayDate: this.formatDateTime(diary.createTime || diary.createdAt),
         moodText: mood.text,
         moodIcon: mood.icon,
         imageGridClass: this.getGridClass(diary.images),
@@ -79,7 +105,13 @@ Page({
   },
 
   goBack() {
-    wx.navigateBack();
+    // 检查页面栈，如果只有当前页，就返回首页
+    const pages = getCurrentPages();
+    if (pages.length <= 1) {
+      wx.switchTab({ url: '/pages/diary/diary' });
+    } else {
+      wx.navigateBack();
+    }
   },
 
   previewImage(e) {

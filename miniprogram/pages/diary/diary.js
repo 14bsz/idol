@@ -52,7 +52,7 @@ Page({
         .map(d => ({
           ...d,
           moodText: this.getMoodText(d.mood),
-          displayDate: (d.createdAt || d.createTime).replace(/-/g, '.').substring(0, 10).replace(/-/g, '.'),
+          displayDate: this.formatDateTime(d.createTime || d.createdAt),
           gridClass: this.getGridClass(d.images?.length || 0)
         }));
       
@@ -69,6 +69,8 @@ Page({
         }
       });
       const allTags = Array.from(tagSet);
+      
+      console.log('[Diary List] 收集到的标签:', allTags);
       
       // 重新加载数据时清除筛选状态，显示所有日记
       this.setData({ 
@@ -89,6 +91,18 @@ Page({
       return 'grid-cols-3 media-small';
     }
     return '';
+  },
+
+  formatDateTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
   },
 
   getMoodText(mood) {
@@ -153,6 +167,9 @@ Page({
     const isPinned = diary.pinned === 1 || diary.pinned === true;
     const newPinnedState = !isPinned;
     
+    // 显示加载提示
+    wx.showLoading({ title: '处理中...', mask: true });
+    
     // 调用后端接口
     app.request({
       url: `/diaries/${diary.id}/pin`,
@@ -162,6 +179,11 @@ Page({
       // 重新从后端获取数据（包含正确的排序）
       return app.fetchDiariesFromServer();
     }).then(() => {
+      // 添加短暂延迟，避免渲染层警告
+      return new Promise(resolve => setTimeout(resolve, 100));
+    }).then(() => {
+      wx.hideLoading();
+      
       // 重新加载列表
       this.loadData();
       
@@ -170,6 +192,7 @@ Page({
         icon: 'success' 
       });
     }).catch((err) => {
+      wx.hideLoading();
       console.error('置顶操作失败:', err);
       wx.showToast({ title: '操作失败', icon: 'error' });
     });
@@ -205,8 +228,19 @@ Page({
     const tag = e.currentTarget.dataset.tag;
     const { selectedTag, diaries } = this.data;
     
+    console.log('[Tag Select] tag:', tag, 'selectedTag:', selectedTag);
+    console.log('[Tag Select] 事件触发了！');
+    
+    // 立即显示一个提示，验证事件是否触发
+    wx.showToast({ 
+      title: `点击了标签: ${tag}`, 
+      icon: 'none',
+      duration: 1000
+    });
+    
     // 如果点击的是已选中的标签，则取消筛选
     if (selectedTag === tag) {
+      console.log('[Tag Select] 取消筛选');
       this.setData({
         selectedTag: null,
         filteredDiaries: diaries
@@ -216,6 +250,7 @@ Page({
       const filteredDiaries = diaries.filter(d => {
         return d.tags && Array.isArray(d.tags) && d.tags.includes(tag);
       });
+      console.log('[Tag Select] 筛选结果:', filteredDiaries.length, '条日记');
       this.setData({
         selectedTag: tag,
         filteredDiaries

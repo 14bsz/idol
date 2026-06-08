@@ -119,7 +119,7 @@
                 <text wx:if="{{item.days === 0}}" style="font-size: 32rpx; font-family: 'Courier New', monospace; font-weight: bold;">今天!</text>
                 <text wx:elif="{{item.days === 1}}" style="font-size: 32rpx; font-family: 'Courier New', monospace; font-weight: bold;">明天!</text>
                 <block wx:else>
-                  <text style="font-size: 20rpx; font-weight: bold;">D-</text>
+                  <text style="font-size: 36rpx; font-family: 'Courier New', monospace; font-weight: 700; line-height: 1;">D-</text>
                   <text style="font-size: 48rpx; font-family: 'Courier New', monospace; font-weight: bold;">{{item.days}}</text>
                 </block>
               </view>
