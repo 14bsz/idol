@@ -24,6 +24,13 @@ uploads/
 # Debug files
 .dbg/
 debug-*.md
+*.md~
 
-# Deployment package (optional - uncomment if you don't want to track it)
-# cloud-deploy/
+# Deployment packages
+cloud-deploy/
+cloud-deploy.zip
+cloud-deploy-clean.zip
+
+# Temporary files
+test-cloud.ps1
+*.cmd
