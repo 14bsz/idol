@@ -8,17 +8,21 @@
     <view class="header-title">{{showAddForm ? (editingIdol ? '编辑档案' : '添加爱豆') : '我的爱豆'}}</view>
       <text class="header-subtitle">{{showAddForm ? 'Fandom Memory' : 'My Idols Collection'}}</text>
     </view>
-    <view class="header-right"></view>
+    <view class="header-right">
+      <view wx:if="{{!showAddForm && idols.length > 0}}" bindtap="toggleManageMode" class="manage-btn {{isManageMode ? 'manage-btn-active' : ''}}">
+        <text>{{isManageMode ? '取消' : '管理'}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 爱豆卡片列表 -->
   <view wx:if="{{!showAddForm}}" class="idol-list">
     <block wx:for="{{idols}}" wx:key="id">
-      <view class="idol-card" hover-class="card-hover" bindtap="switchIdol" data-id="{{item.id}}">
+      <view class="idol-card {{isManageMode ? 'idol-card-manage' : ''}}" hover-class="{{isManageMode ? '' : 'card-hover'}}" bindtap="{{isManageMode ? '' : 'switchIdol'}}" data-id="{{item.id}}">
         <view class="card-left">
           <view class="avatar-container">
             <image src="{{item.avatar}}" class="avatar" mode="aspectFill" />
-            <view wx:if="{{item.id === currentIdolId}}" class="active-badge">
+            <view wx:if="{{item.id === currentIdolId && !isManageMode}}" class="active-badge">
               <text>✓</text>
             </view>
           </view>
@@ -28,8 +32,13 @@
           </view>
         </view>
         <view class="card-right">
-          <view catchtap="editIdol" data-id="{{item.id}}" class="edit-btn">
+          <!-- 普通模式：编辑按钮 -->
+          <view wx:if="{{!isManageMode}}" catchtap="editIdol" data-id="{{item.id}}" class="edit-btn">
             <text>✏️</text>
+          </view>
+          <!-- 管理模式：删除按钮 -->
+          <view wx:else catchtap="confirmDeleteIdol" data-id="{{item.id}}" data-name="{{item.name}}" class="delete-btn-icon">
+            <text>🗑️</text>
           </view>
         </view>
       </view>
@@ -152,6 +161,27 @@
       </view>
       <view bindtap="{{editingIdol ? 'updateIdol' : 'addIdol'}}" class="submit-btn">
         {{editingIdol ? '保存修改' : '确认入坑'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view wx:if="{{showDeleteModal}}" class="delete-modal-overlay" bindtap="hideDeleteModal">
+    <view class="delete-modal" catchtap="stopPropagation">
+      <view class="delete-modal-icon">
+        <text>⚠️</text>
+      </view>
+      <view class="delete-modal-title">确认删除爱豆？</view>
+      <view class="delete-modal-desc">
+        删除后，与"{{deletingIdolName}}"相关的所有日记、纪念日等数据都将被永久删除，此操作无法撤销。
+      </view>
+      <view class="delete-modal-actions">
+        <view bindtap="hideDeleteModal" class="delete-modal-cancel">
+          取消
+        </view>
+        <view bindtap="executeDeleteIdol" class="delete-modal-confirm">
+          确认删除
+        </view>
       </view>
     </view>
   </view>

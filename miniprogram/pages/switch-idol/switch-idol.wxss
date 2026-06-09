@@ -652,3 +652,149 @@ page {
   text-align: center;
   box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.4);
 }
+
+/* 管理按钮 */
+.header-right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: 24rpx;
+}
+
+.manage-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #fef3f8, #fce4ec);
+  border: 2rpx solid #fbd5e4;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ec4899;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2rpx 8rpx rgba(236, 72, 153, 0.1);
+}
+
+.manage-btn:active {
+  transform: scale(0.95);
+}
+
+.manage-btn-active {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  border-color: #db2777;
+  color: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(236, 72, 153, 0.3);
+}
+
+/* 管理模式下的卡片 */
+.idol-card-manage {
+  border: 2rpx solid #fee2e2;
+  background: #fffafa;
+}
+
+.idol-card-manage .idol-name {
+  color: #475569;
+}
+
+/* 删除图标按钮 */
+.delete-btn-icon {
+  padding: 16rpx;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border-radius: 20rpx;
+  border: 2rpx solid #fecaca;
+  transition: all 0.2s;
+}
+
+.delete-btn-icon:active {
+  transform: scale(0.9);
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+
+.delete-btn-icon text {
+  font-size: 32rpx;
+}
+
+/* 删除确认弹窗 */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+.delete-modal {
+  width: 100%;
+  max-width: 560rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  padding: 56rpx 48rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 40rpx 80rpx rgba(0,0,0,0.3);
+}
+
+.delete-modal-icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.delete-modal-icon text {
+  font-size: 56rpx;
+}
+
+.delete-modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.delete-modal-desc {
+  font-size: 26rpx;
+  color: #64748b;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 48rpx;
+  padding: 0 8rpx;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 20rpx;
+  width: 100%;
+}
+
+.delete-modal-cancel,
+.delete-modal-confirm {
+  flex: 1;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.delete-modal-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.delete-modal-confirm {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  color: white;
+  box-shadow: 0 12rpx 32rpx -12rpx rgba(220, 38, 38, 0.4);
+}

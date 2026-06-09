@@ -7,6 +7,10 @@ Page({
     currentIdolId: '',
     showAddForm: false,
     editingIdol: null,
+    isManageMode: false,
+    showDeleteModal: false,
+    deletingIdolId: null,
+    deletingIdolName: '',
     newName: '',
     newNickname: '',
     newAvatar: '',
@@ -428,6 +432,86 @@ Page({
   },
 
   goBack() {
-    wx.navigateBack();
+    // 如果在管理模式，先退出管理模式
+    if (this.data.isManageMode) {
+      this.setData({ isManageMode: false });
+    } else {
+      wx.navigateBack();
+    }
+  },
+
+  toggleManageMode() {
+    this.setData({ 
+      isManageMode: !this.data.isManageMode 
+    });
+  },
+
+  confirmDeleteIdol(e) {
+    const id = e.currentTarget.dataset.id;
+    const name = e.currentTarget.dataset.name;
+    this.setData({ 
+      showDeleteModal: true,
+      deletingIdolId: id,
+      deletingIdolName: name
+    });
+  },
+
+  hideDeleteModal() {
+    this.setData({ 
+      showDeleteModal: false,
+      deletingIdolId: null,
+      deletingIdolName: ''
+    });
+  },
+
+  executeDeleteIdol() {
+    const { deletingIdolId } = this.data;
+    
+    if (!deletingIdolId) {
+      util.showToast('无法删除，数据异常');
+      return;
+    }
+
+    wx.showLoading({ title: '删除中...' });
+    
+    app.deleteIdolFromServer(deletingIdolId).then(() => {
+      wx.hideLoading();
+      
+      // 如果删除的是当前爱豆，切换到第一个爱豆或清空
+      if (app.globalData.currentIdol?.id === deletingIdolId) {
+        const remainingIdols = app.globalData.idols.filter(i => i.id !== deletingIdolId);
+        if (remainingIdols.length > 0) {
+          app.globalData.currentIdol = remainingIdols[0];
+          try {
+            wx.setStorageSync('currentIdol', remainingIdols[0]);
+          } catch (e) {
+            console.error('保存当前爱豆失败', e);
+          }
+        } else {
+          app.globalData.currentIdol = null;
+          try {
+            wx.removeStorageSync('currentIdol');
+          } catch (e) {
+            console.error('清空当前爱豆失败', e);
+          }
+        }
+      }
+      
+      util.showToast('删除成功', 'success');
+      
+      setTimeout(() => {
+        this.setData({
+          showDeleteModal: false,
+          deletingIdolId: null,
+          deletingIdolName: '',
+          isManageMode: false
+        });
+        this.loadData();
+      }, 800);
+    }).catch((err) => {
+      wx.hideLoading();
+      console.error('删除失败:', err);
+      util.showToast('删除失败，请重试');
+    });
   }
 })
