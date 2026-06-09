@@ -70,14 +70,32 @@ Page({
 
       const wordsCount = monthlyEntries.reduce((acc, e) => acc + (e.content ? e.content.length : 0), 0);
 
-      const allImages = [
-        ...monthlyEntries.reduce((acc, e) => {
-          const images = e.images || [];
-          return acc.concat(images.map(img => typeof img === 'string' ? img : img.url).filter(Boolean));
-        }, []),
-        ...monthlyCollections.map(c => c.imageUrl).filter(Boolean)
-      ];
-      const bestMoments = allImages.sort(() => 0.5 - Math.random());
+      const allImages = [];
+      
+      // 从日记中提取图片
+      monthlyEntries.forEach(e => {
+        if (e.images && Array.isArray(e.images)) {
+          e.images.forEach(img => {
+            // 支持多种格式：字符串URL 或 对象{url: ...}
+            if (typeof img === 'string' && img.trim()) {
+              allImages.push(img);
+            } else if (img && typeof img === 'object' && img.url && img.url.trim()) {
+              allImages.push(img.url);
+            }
+          });
+        }
+      });
+      
+      // 从收藏中提取图片
+      monthlyCollections.forEach(c => {
+        if (c.imageUrl && c.imageUrl.trim()) {
+          allImages.push(c.imageUrl);
+        }
+      });
+      
+      // 随机打乱并去重
+      const uniqueImages = [...new Set(allImages)];
+      const bestMoments = uniqueImages.sort(() => 0.5 - Math.random());
 
       const quotes = [
         "因为有你，所有的日子都闪闪发亮。",
@@ -230,6 +248,20 @@ Page({
 
   onBack() {
     wx.navigateBack();
+  },
+
+  onImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    console.error('图片加载失败:', this.data.stats.bestMoments[index]);
+    
+    // 从列表中移除加载失败的图片
+    const bestMoments = this.data.stats.bestMoments.filter((_, i) => i !== index);
+    const imageCount = bestMoments.length;
+    
+    this.setData({
+      'stats.bestMoments': bestMoments,
+      'stats.imageCount': imageCount
+    });
   },
 
   onShare() {

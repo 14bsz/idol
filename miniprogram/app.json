@@ -1,11 +1,13 @@
 {
   "pages": [
     "pages/login/login",
+    "pages/agreement-detail/agreement-detail",
     "pages/home/home",
     "pages/diary/diary",
     "pages/diary-detail/diary-detail",
     "pages/collection/collection",
     "pages/profile/profile",
+    "pages/image-cropper/image-cropper",
     "pages/diary-editor/diary-editor",
     "pages/collection-add/collection-add",
     "pages/switch-idol/switch-idol",

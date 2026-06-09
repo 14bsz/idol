@@ -10,15 +10,27 @@
 
     <view class="login-btn-section">
       <button 
-        class="login-btn {{loading ? 'loading' : ''}}" 
+        class="login-btn {{loading ? 'loading' : ''}} {{!agreed ? 'pending' : ''}}" 
         bindtap="onWechatLogin"
         disabled="{{loading}}"
       >
         <text wx:if="{{!loading}}">微信一键登录</text>
         <text wx:else>登录中...</text>
       </button>
-      
-      <text class="login-tip">登录即表示同意《用户协议》和《隐私政策》</text>
+
+      <view class="agreement-panel">
+        <view class="agreement-check" bindtap="onToggleAgreement">
+          <view class="agreement-checkbox {{agreed ? 'checked' : ''}}">
+            <text wx:if="{{agreed}}" class="agreement-checkbox-icon">✓</text>
+          </view>
+          <view class="agreement-text-group">
+            <text class="agreement-prefix">我已阅读并同意</text>
+            <text class="agreement-link" catchtap="onOpenUserAgreement">《用户协议》</text>
+            <text class="agreement-separator">和</text>
+            <text class="agreement-link" catchtap="onOpenPrivacyPolicy">《隐私政策》</text>
+          </view>
+        </view>
+      </view>
     </view>
 
     <view class="features-section">

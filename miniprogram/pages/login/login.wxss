@@ -1,10 +1,88 @@
 .login-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #fffaf8 0%, #fdf2f8 50%, #fce7f3 100%);
+  background: linear-gradient(135deg, #fffaf8, #fdf2f8, #fce7f3, #fffaf8);
+  background-size: 400% 400%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48rpx;
+  overflow: hidden;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* 动画定义 */
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes textShine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    left: -100%;
+  }
+  20% {
+    left: 200%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12rpx);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 20rpx rgba(236, 72, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+  }
+}
+
+@keyframes checkmarkBounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .login-content {
@@ -15,6 +93,7 @@
 .logo-section {
   text-align: center;
   margin-bottom: 120rpx;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .logo-icon {
@@ -27,6 +106,7 @@
   justify-content: center;
   margin: 0 auto 32rpx;
   box-shadow: 0 20rpx 60rpx -10rpx rgba(236, 72, 153, 0.4);
+  animation: float 4s ease-in-out infinite, pulse 3s infinite;
 }
 
 .logo-icon text {
@@ -49,6 +129,8 @@
 
 .login-btn-section {
   margin-bottom: 120rpx;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
 .login-btn {
@@ -65,6 +147,31 @@
   box-shadow: 0 10rpx 30rpx -10rpx rgba(7, 193, 96, 0.4);
   border: none;
   outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 按钮扫光特效 */
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: sweep 4s infinite;
+}
+
+.login-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx -4rpx rgba(7, 193, 96, 0.4);
+}
+
+.login-btn.pending {
+  opacity: 0.92;
 }
 
 .login-btn::after {
@@ -75,18 +182,75 @@
   opacity: 0.7;
 }
 
-.login-tip {
-  display: block;
-  text-align: center;
-  font-size: 24rpx;
-  color: #94a3b8;
+.agreement-panel {
   margin-top: 32rpx;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.agreement-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agreement-checkbox {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 2rpx solid #f9a8d4;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.agreement-checkbox.checked {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  border-color: transparent;
+  animation: checkmarkBounce 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agreement-checkbox-icon {
+  font-size: 20rpx;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.agreement-text-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.agreement-prefix,
+.agreement-separator {
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.agreement-link {
+  color: #ec4899;
+  font-size: 24rpx;
+  transition: opacity 0.2s;
+}
+
+.agreement-link:active {
+  opacity: 0.6;
 }
 
 .features-section {
   display: flex;
   justify-content: space-around;
   padding: 0 24rpx;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 
 .feature-item {
@@ -94,6 +258,24 @@
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: float 4s ease-in-out infinite;
+}
+
+.feature-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.feature-item:nth-child(2) {
+  animation-delay: 1.3s;
+}
+
+.feature-item:nth-child(3) {
+  animation-delay: 2.6s;
+}
+
+.feature-item:active {
+  transform: translateY(-4rpx) scale(0.95);
 }
 
 .feature-icon {

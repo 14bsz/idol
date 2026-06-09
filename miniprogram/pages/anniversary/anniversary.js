@@ -780,5 +780,28 @@ Page({
     })].sort((a, b) => a.date - b.date);
     
     return all;
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    const app = getApp();
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `${idolName}的重要纪念日，一起记录重要时刻`,
+      path: '/pages/anniversary/anniversary',
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    const app = getApp();
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `${idolName}的纪念日 - 爱豆时光日记`,
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
   }
 })

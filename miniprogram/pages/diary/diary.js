@@ -251,5 +251,28 @@ Page({
       selectedTag: null,
       filteredDiaries: this.data.diaries
     });
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    const app = getApp();
+    const idol = app.globalData.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `我的${idolName}追星日记，记录每一个美好瞬间`,
+      path: '/pages/diary/diary',
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    const app = getApp();
+    const idol = app.globalData.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `${idolName}追星日记 - 爱豆时光日记`,
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
   }
 })

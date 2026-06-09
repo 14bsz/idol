@@ -105,5 +105,28 @@ Page({
     const { selectedCategory, collections } = this.data;
     if (selectedCategory === '全部') return collections;
     return collections.filter(c => c.category === selectedCategory);
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    const app = getApp();
+    const idol = app.globalData.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `我的${idolName}收藏，记录珍贵瞬间`,
+      path: '/pages/collection/collection',
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    const app = getApp();
+    const idol = app.globalData.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `${idolName}的珍藏 - 爱豆时光日记`,
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
   }
 })

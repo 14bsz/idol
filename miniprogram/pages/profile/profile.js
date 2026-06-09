@@ -102,7 +102,9 @@ Page({
   onChooseWechatAvatar(e) {
     const avatarUrl = e.detail.avatarUrl;
     this.setData({ showWechatAvatarBtn: false });
-    this.uploadAndUpdateAvatar(avatarUrl);
+    this.openCropper(avatarUrl, 'avatar', (croppedPath) => {
+      this.uploadAndUpdateAvatar(croppedPath);
+    });
   },
 
   chooseAlbumAvatar() {
@@ -113,11 +115,26 @@ Page({
       sourceType: ['album'],
       success(res) {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        that.uploadAndUpdateAvatar(tempFilePath);
+        that.openCropper(tempFilePath, 'avatar', (croppedPath) => {
+          that.uploadAndUpdateAvatar(croppedPath);
+        });
       },
       fail(err) {
         console.error('选择图片失败', err);
         wx.showToast({ title: '选择图片失败', icon: 'none' });
+      }
+    });
+  },
+
+  openCropper(filePath, type, onSuccess) {
+    wx.navigateTo({
+      url: `/pages/image-cropper/image-cropper?type=${type}&src=${encodeURIComponent(filePath)}`,
+      events: {
+        cropSuccess: (result) => {
+          if (result && result.tempFilePath && typeof onSuccess === 'function') {
+            onSuccess(result.tempFilePath);
+          }
+        }
       }
     });
   },
@@ -170,5 +187,20 @@ Page({
   onLogout() {
     const app = getApp();
     app.logout();
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    return {
+      title: '爱豆时光日记 - 记录追星的每一刻',
+      path: '/pages/home/home'
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    return {
+      title: '爱豆时光日记 - 记录追星的美好时光'
+    };
   }
 })

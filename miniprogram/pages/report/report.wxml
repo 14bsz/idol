@@ -59,8 +59,16 @@
         <text>最佳瞬间</text>
         <text class="count-badge">共 {{stats.imageCount}} 张</text>
       </view>
-      <scroll-view class="photo-gallery" scroll-x enable-flex>
-        <image wx:for="{{stats.bestMoments}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="gallery-photo"></image>
+      <scroll-view class="photo-gallery" scroll-x enable-flex show-scrollbar="{{false}}">
+        <image 
+          wx:for="{{stats.bestMoments}}" 
+          wx:key="index" 
+          src="{{item}}" 
+          mode="aspectFill" 
+          class="gallery-photo"
+          binderror="onImageError"
+          data-index="{{index}}"
+        ></image>
       </scroll-view>
     </view>
 

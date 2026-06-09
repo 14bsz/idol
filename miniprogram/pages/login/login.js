@@ -1,6 +1,7 @@
 Page({
   data: {
-    loading: false
+    loading: false,
+    agreed: false
   },
 
   onLoad() {
@@ -16,9 +17,18 @@ Page({
 
   onWechatLogin() {
     if (this.data.loading) return;
-    
+
+    if (!this.data.agreed) {
+      wx.showToast({
+        title: '请先阅读并勾选协议',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
     this.setData({ loading: true });
-    
+
     const app = getApp();
     app.wechatLogin().then(() => {
       this.setData({ loading: false });
@@ -38,5 +48,34 @@ Page({
         showCancel: false
       });
     });
+  },
+
+  onToggleAgreement() {
+    this.setData({
+      agreed: !this.data.agreed
+    });
+  },
+
+  openAgreementDetail(type) {
+    wx.navigateTo({
+      url: `/pages/agreement-detail/agreement-detail?type=${type}`
+    });
+  },
+
+  onOpenUserAgreement() {
+    this.openAgreementDetail('user');
+  },
+
+  onOpenPrivacyPolicy() {
+    if (typeof wx.openPrivacyContract === 'function') {
+      wx.openPrivacyContract({
+        fail: () => {
+          this.openAgreementDetail('privacy');
+        }
+      });
+      return;
+    }
+
+    this.openAgreementDetail('privacy');
   }
 })

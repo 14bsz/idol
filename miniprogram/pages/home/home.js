@@ -1,3 +1,5 @@
+const shareUtil = require('../../utils/share.js');
+
 Page({
   data: {
     isLoggedIn: false,
@@ -216,35 +218,57 @@ Page({
       sourceType: ['album', 'camera'],
       success(res) {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        const app = getApp();
-        
-        wx.showLoading({ title: '上传中...' });
-        
-        app.uploadFile(tempFilePath).then((uploadRes) => {
-          const imageUrl = uploadRes.data.url;
-          const updatedIdol = { ...that.data.currentIdol, bannerImage: imageUrl };
-          
-          return app.saveIdolToServer(updatedIdol).then(() => {
-            wx.hideLoading();
-            that.setData({ 
-              currentIdol: app.globalData.currentIdol,
-              showMenu: false 
-            });
-            wx.showToast({ title: '更新成功', icon: 'success' });
-          }).catch((err) => {
-            console.error('保存到后端失败:', err);
-            wx.hideLoading();
-            if (err && err.message && err.message.includes('登录已过期')) {
-              return;
-            }
-            wx.showToast({ title: '保存失败', icon: 'none' });
-          });
-        }).catch((err) => {
-          console.error('上传失败:', err);
-          wx.hideLoading();
-          wx.showToast({ title: '上传失败', icon: 'none' });
+        that.openCropper(tempFilePath, 'banner', (croppedPath) => {
+          that.uploadAndSaveBanner(croppedPath);
         });
+      },
+      fail(err) {
+        console.error('选择壁纸失败:', err);
+        wx.showToast({ title: '选择图片失败', icon: 'none' });
       }
+    });
+  },
+
+  openCropper(filePath, type, onSuccess) {
+    wx.navigateTo({
+      url: `/pages/image-cropper/image-cropper?type=${type}&src=${encodeURIComponent(filePath)}`,
+      events: {
+        cropSuccess: (result) => {
+          if (result && result.tempFilePath && typeof onSuccess === 'function') {
+            onSuccess(result.tempFilePath);
+          }
+        }
+      }
+    });
+  },
+
+  uploadAndSaveBanner(filePath) {
+    const app = getApp();
+    wx.showLoading({ title: '上传中...' });
+    
+    app.uploadFile(filePath).then((uploadRes) => {
+      const imageUrl = uploadRes.data.url;
+      const updatedIdol = { ...this.data.currentIdol, bannerImage: imageUrl };
+      
+      return app.saveIdolToServer(updatedIdol).then(() => {
+        wx.hideLoading();
+        this.setData({ 
+          currentIdol: app.globalData.currentIdol,
+          showMenu: false 
+        });
+        wx.showToast({ title: '更新成功', icon: 'success' });
+      }).catch((err) => {
+        console.error('保存到后端失败:', err);
+        wx.hideLoading();
+        if (err && err.message && err.message.includes('登录已过期')) {
+          return;
+        }
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      });
+    }).catch((err) => {
+      console.error('上传失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: '上传失败', icon: 'none' });
     });
   },
 
@@ -262,5 +286,26 @@ Page({
 
   onAddFirstIdol() {
     wx.navigateTo({ url: '/pages/switch-idol/switch-idol' });
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `我在追${idolName}，一起来记录追星的美好时光吧！`,
+      path: '/pages/home/home',
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '我的爱豆';
+    return {
+      title: `爱豆时光日记 - 记录追${idolName}的每一刻`,
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
   }
 })

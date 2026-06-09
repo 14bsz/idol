@@ -23,8 +23,12 @@
             {{item.iconText || item.title[0] || '纪'}}
           </view>
           <view class="info">
-            <text class="item-title">{{item.title}}</text>
-            <text class="item-date">{{item.label}}</text>
+            <view class="item-title-row">
+              <text class="item-title">{{item.title}}</text>
+            </view>
+            <view class="item-meta-row">
+              <text class="item-date">{{item.label}}</text>
+            </view>
           </view>
         </view>
         <view class="card-right">

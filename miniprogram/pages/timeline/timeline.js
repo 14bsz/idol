@@ -322,5 +322,28 @@ Page({
 
   getTopMoodText(moods) {
     return this.getMoodText(this.getTopMood(moods));
+  },
+
+  // 分享给朋友
+  onShareAppMessage(res) {
+    const app = getApp();
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '爱豆';
+    return {
+      title: `${idolName}的时光轴 - 记录每个重要时刻`,
+      path: '/pages/timeline/timeline',
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline(res) {
+    const app = getApp();
+    const idol = this.data.currentIdol;
+    const idolName = idol ? idol.name : '爱豆';
+    return {
+      title: `${idolName}的时光轴 - 爱豆时光日记`,
+      imageUrl: idol && idol.bannerImage ? idol.bannerImage : ''
+    };
   }
 })

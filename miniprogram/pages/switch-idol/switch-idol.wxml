@@ -67,6 +67,25 @@
       </view>
     </view>
 
+    <view class="field-group banner-field-group">
+      <text class="field-label">爱豆壁纸</text>
+      <view class="banner-upload-card" bindtap="onChooseBanner">
+        <image
+          wx:if="{{newBannerImage}}"
+          src="{{newBannerImage}}"
+          class="banner-upload-image"
+          mode="aspectFill"
+        />
+        <view wx:else class="banner-upload-placeholder">
+          <text class="banner-upload-placeholder-title">点击上传爱豆壁纸</text>
+          <text class="banner-upload-placeholder-desc">首页横幅会优先展示你上传的图片</text>
+        </view>
+        <view class="banner-upload-mask">
+          <text class="banner-upload-text">{{newBannerImage ? '更换壁纸' : '上传壁纸'}}</text>
+        </view>
+      </view>
+    </view>
+
     <view class="form-fields">
       <view class="field-group">
         <text class="field-label">爱豆本名 / 艺名</text>
@@ -116,6 +135,15 @@
           </view>
         </picker>
       </view>
+
+      <view class="field-group">
+        <text class="field-label">应援色</text>
+        <view class="color-preview" bindtap="showColorPicker">
+          <view class="color-preview-circle" style="background-color: {{newSupportColor}};"></view>
+          <text class="color-preview-text">{{selectedColorName}}</text>
+          <text class="color-preview-arrow">›</text>
+        </view>
+      </view>
     </view>
 
     <view class="form-actions">
@@ -124,6 +152,42 @@
       </view>
       <view bindtap="{{editingIdol ? 'updateIdol' : 'addIdol'}}" class="submit-btn">
         {{editingIdol ? '保存修改' : '确认入坑'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 颜色选择器弹窗 -->
+  <view wx:if="{{showColorModal}}" class="color-modal-overlay" bindtap="hideColorPicker">
+    <view class="color-modal" catchtap="stopPropagation">
+      <view class="color-modal-header">
+        <text class="color-modal-title">选择应援色</text>
+        <view class="color-modal-close" bindtap="hideColorPicker">✕</view>
+      </view>
+      
+      <scroll-view class="color-modal-content" scroll-y="true" enable-flex="true">
+        <view class="color-category" wx:for="{{colorCategories}}" wx:key="category">
+          <text class="category-title">{{item.category}}</text>
+          <view class="color-grid">
+            <block wx:for="{{item.colors}}" wx:key="value" wx:for-item="color">
+              <view 
+                class="color-item {{newSupportColor === color.value ? 'active' : ''}}"
+                bindtap="onColorSelect"
+                data-color="{{color.value}}"
+                data-name="{{color.name}}"
+                style="--theme-color: {{color.value}};"
+              >
+                <view class="color-circle" style="background-color: {{color.value}};"></view>
+                <text class="color-name">{{color.name}}</text>
+              </view>
+            </block>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <view class="color-modal-footer">
+        <view class="color-confirm-btn" bindtap="hideColorPicker">
+          确定
+        </view>
       </view>
     </view>
   </view>

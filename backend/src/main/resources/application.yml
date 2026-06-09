@@ -60,8 +60,8 @@ sa-token:
 # 微信小程序配置
 wechat:
   mini-program:
-    app-id: wxbba78cabc89373f1
-    app-secret: 894cb0a032058fd28de54b4ed6427d4b
+    app-id: ${WECHAT_APPID:wxbba78cabc89373f1}
+    app-secret: ${WECHAT_APPSECRET:894cb0a032058fd28de54b4ed6427d4b}
     subscribe-template-id: 'CHDjT8HE95RaRZ9jQhANBKkT8VgQMa_V_jX-Z3YoR14'
     subscribe-template-no: '571'
     subscribe-template-title: '日程提醒'
