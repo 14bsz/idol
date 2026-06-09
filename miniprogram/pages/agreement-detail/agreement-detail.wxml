@@ -1,0 +1,23 @@
+<view class="agreement-page">
+  <view class="agreement-card">
+    <view class="agreement-header">
+      <text class="agreement-title">{{title}}</text>
+      <text class="agreement-date">更新日期：{{updatedAt}}</text>
+    </view>
+
+    <view class="agreement-intro">
+      <text>{{intro}}</text>
+    </view>
+
+    <view class="agreement-section" wx:for="{{sections}}" wx:key="heading">
+      <text class="section-heading">{{item.heading}}</text>
+      <text
+        class="section-paragraph"
+        wx:for="{{item.paragraphs}}"
+        wx:key="*this"
+      >
+        {{item}}
+      </text>
+    </view>
+  </view>
+</view>

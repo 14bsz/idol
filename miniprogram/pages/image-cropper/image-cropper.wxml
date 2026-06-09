@@ -1,0 +1,63 @@
+<view class="crop-page" style="padding-top: {{safeTop}}px; padding-bottom: {{safeBottom}}px;">
+  <view
+    class="crop-header"
+    style="height: {{navBarHeight}}px; padding-left: {{headerPaddingLeft}}px; padding-right: {{headerPaddingRight}}px;"
+  >
+    <view class="header-action" bindtap="onCancel">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title-group">
+      <text class="header-title">{{title}}</text>
+      <text class="header-subtitle">{{subtitle}}</text>
+    </view>
+  </view>
+
+  <view class="crop-body">
+    <view class="crop-tip">{{tipText}}</view>
+
+    <view class="crop-stage">
+      <view
+        wx:if="{{isReady}}"
+        class="crop-frame-shell {{cropType === 'avatar' ? 'avatar-frame' : 'banner-frame'}}"
+        style="width: {{cropFrameWidth}}px; height: {{cropFrameHeight}}px;"
+      >
+        <view
+          class="crop-viewport"
+          catchtouchstart="onTouchStart"
+          catchtouchmove="onTouchMove"
+          catchtouchend="onTouchEnd"
+          catchtouchcancel="onTouchEnd"
+        >
+          <image
+            src="{{imageSrc}}"
+            class="crop-image"
+            style="width: {{displayWidth}}px; height: {{displayHeight}}px; left: {{imageLeft}}px; top: {{imageTop}}px; transform: translate3d(0,0,0);"
+            mode="aspectFill"
+            draggable="{{false}}"
+          />
+        </view>
+        <view class="crop-frame-highlight"></view>
+      </view>
+
+      <view wx:else class="crop-loading">图片加载中...</view>
+    </view>
+
+    <view class="crop-footer">
+      <text class="footer-title">{{footerTitle}}</text>
+      <text class="footer-desc">{{footerDesc}}</text>
+    </view>
+  </view>
+
+  <view class="crop-bottom-bar">
+    <view class="bottom-action secondary" bindtap="onCancel">取消</view>
+    <view class="bottom-action primary {{isSaving ? 'disabled' : ''}}" bindtap="onConfirmCrop">
+      {{isSaving ? '生成中' : '完成'}}
+    </view>
+  </view>
+
+  <canvas
+    canvas-id="cropCanvas"
+    class="hidden-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+  ></canvas>
+</view>
