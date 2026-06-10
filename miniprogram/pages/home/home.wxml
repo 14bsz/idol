@@ -1,13 +1,63 @@
 <view class="container" style="padding: 24px; padding-bottom: 96px;">
-  <!-- 未登录状态 -->
-  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
-    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
-      <text style="font-size: 64px;">🔒</text>
+  <!-- 未登录状态 - 展示介绍和体验入口 -->
+  <view wx:if="{{!isLoggedIn}}" class="guest-view">
+    <!-- 欢迎卡片 -->
+    <view class="guest-welcome-card">
+      <view class="guest-welcome-icon">
+        <text style="font-size: 52px; display: inline-block; animation: logo-sparkle 3s ease-in-out infinite;">✨</text>
+      </view>
+      <text class="guest-welcome-title">爱豆时光日记</text>
+      <text class="guest-welcome-desc">记录追星时光，珍藏美好瞬间</text>
     </view>
-    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
-    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能记录你的追星时光哦~</text>
-    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
-      立即登录
+
+    <!-- 功能介绍 -->
+    <view class="guest-feature-grid">
+      <view class="guest-feature-card">
+        <view class="guest-feature-icon feature-icon-pink">
+          <text class="feature-emoji feature-emoji-diary">📝</text>
+        </view>
+        <text class="guest-feature-title">时光日记</text>
+        <text class="guest-feature-desc">记录每一个心动瞬间</text>
+      </view>
+
+      <view class="guest-feature-card">
+        <view class="guest-feature-icon feature-icon-purple">
+          <text class="feature-emoji">📷</text>
+        </view>
+        <text class="guest-feature-title">精彩收藏</text>
+        <text class="guest-feature-desc">珍藏爱豆的美好照片</text>
+      </view>
+
+      <view class="guest-feature-card">
+        <view class="guest-feature-icon feature-icon-pink">
+          <text class="feature-emoji feature-emoji-cake">🎂</text>
+        </view>
+        <text class="guest-feature-title">纪念日提醒</text>
+        <text class="guest-feature-desc">不错过重要的日子</text>
+      </view>
+
+      <view class="guest-feature-card">
+        <view class="guest-feature-icon feature-icon-purple">
+          <text class="feature-emoji feature-emoji-chart">📊</text>
+        </view>
+        <text class="guest-feature-title">时光回顾</text>
+        <text class="guest-feature-desc">回顾追星的每一天</text>
+      </view>
+    </view>
+
+    <!-- 体验提示 -->
+    <view class="guest-tip-card">
+      <text class="guest-tip-icon">💡</text>
+      <text class="guest-tip-text">你可以先浏览其他标签页，体验小程序的功能</text>
+    </view>
+
+    <!-- 登录按钮 -->
+    <view class="guest-login-action">
+      <view class="guest-login-btn" bindtap="goToLogin" hover-class="button-hover">
+        <text>开始记录追星时光</text>
+        <text class="guest-login-btn-arrow">→</text>
+      </view>
+      <text class="guest-login-hint">登录后可保存你的专属数据</text>
     </view>
   </view>
 

@@ -432,3 +432,417 @@
 .cancel-btn:active {
   background: #E8E8E8;
 }
+
+
+/* ====== 未登录状态 Emoji 图标动画 ====== */
+
+/* ✨ Logo - 浮动闪烁 */
+@keyframes logo-sparkle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: brightness(1);
+  }
+  25% {
+    transform: translateY(-8rpx) rotate(10deg) scale(1.1);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: translateY(-12rpx) rotate(-5deg) scale(1.05);
+    filter: brightness(1.3);
+  }
+  75% {
+    transform: translateY(-6rpx) rotate(5deg) scale(1.08);
+    filter: brightness(1.1);
+  }
+}
+
+/* 📝 时光日记 - 书写动画 */
+@keyframes diary-write {
+  0%, 100% {
+    transform: rotate(0deg) translate(0, 0);
+  }
+  20% {
+    transform: rotate(-8deg) translate(-2rpx, 2rpx);
+  }
+  40% {
+    transform: rotate(8deg) translate(2rpx, -2rpx);
+  }
+  60% {
+    transform: rotate(-5deg) translate(-1rpx, 1rpx);
+  }
+  80% {
+    transform: rotate(3deg) translate(1rpx, -1rpx);
+  }
+}
+
+/* 📷 精彩收藏 - 相机快门 */
+@keyframes camera-click {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  10%, 20% {
+    transform: scale(0.85) rotate(-5deg);
+  }
+  15% {
+    transform: scale(1.15) rotate(5deg);
+  }
+  30%, 50% {
+    transform: scale(1) rotate(0deg);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+  70% {
+    transform: rotate(-10deg);
+  }
+  80% {
+    transform: rotate(0deg);
+  }
+}
+
+/* 🎂 纪念日 - 蜡烛摇曳 */
+@keyframes cake-candle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    transform: translateY(-4rpx) rotate(-3deg);
+    filter: brightness(1.15);
+  }
+  50% {
+    transform: translateY(-6rpx) rotate(3deg);
+    filter: brightness(1.2);
+  }
+  75% {
+    transform: translateY(-3rpx) rotate(-2deg);
+    filter: brightness(1.1);
+  }
+}
+
+/* 📊 时光回顾 - 数据波动 */
+@keyframes chart-wave {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  25% {
+    transform: translateY(-3rpx) scaleY(1.05);
+  }
+  50% {
+    transform: translateY(-5rpx) scaleY(0.95);
+  }
+  75% {
+    transform: translateY(-2rpx) scaleY(1.03);
+  }
+}
+
+/* 💡 提示灯泡 - 闪烁 */
+@keyframes bulb-blink {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: brightness(1.3) drop-shadow(0 0 10rpx rgba(236, 72, 153, 0.6));
+  }
+}
+
+/* 页面淡入动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guest-view {
+  animation: fadeInUp 0.6s ease-out;
+  margin-top: -8rpx;
+  margin-bottom: -80rpx;
+}
+
+/* ====== 未登录状态 - 欢迎卡片 ====== */
+.guest-welcome-card {
+  padding: 44rpx 40rpx 34rpx;
+  border-radius: 48rpx;
+  margin-bottom: 28rpx;
+  background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #ede9fe 100%);
+  border-top: 2rpx solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 12rpx 40rpx -12rpx rgba(236, 72, 153, 0.15);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-welcome-card::before {
+  content: '';
+  position: absolute;
+  top: -50rpx;
+  right: -50rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.guest-welcome-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30rpx;
+  left: -30rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.guest-welcome-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18rpx;
+  box-shadow: 0 8rpx 28rpx -8rpx rgba(236, 72, 153, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.guest-welcome-title {
+  font-size: 42rpx;
+  font-weight: bold;
+  color: #1e293b;
+  display: block;
+  margin-bottom: 8rpx;
+  letter-spacing: 2rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.guest-welcome-desc {
+  font-size: 26rpx;
+  color: #64748b;
+  display: block;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+}
+
+.guest-welcome-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin: 16rpx 0 12rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.divider-dot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: rgba(236, 72, 153, 0.3);
+}
+
+.divider-line {
+  width: 80rpx;
+  height: 2rpx;
+  background: linear-gradient(to right, transparent, rgba(236, 72, 153, 0.3), transparent);
+}
+
+.guest-welcome-sub {
+  font-size: 22rpx;
+  color: #94a3b8;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== 功能卡片网格 ====== */
+.guest-feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22rpx;
+  margin-bottom: 28rpx;
+}
+
+.guest-feature-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20rpx);
+  border-radius: 32rpx;
+  padding: 28rpx 20rpx 24rpx;
+  text-align: center;
+  border-top: 2rpx solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8rpx 24rpx -8rpx rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.guest-feature-card:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx -4rpx rgba(0, 0, 0, 0.06);
+}
+
+.guest-feature-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14rpx;
+}
+
+.feature-icon-pink {
+  background: linear-gradient(135deg, #fce4ec, #fbc2d8);
+}
+
+.feature-icon-purple {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+
+.feature-emoji {
+  font-size: 42rpx;
+  display: inline-block;
+}
+
+.guest-feature-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #1e293b;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.guest-feature-desc {
+  font-size: 22rpx;
+  color: #94a3b8;
+  display: block;
+  line-height: 1.4;
+}
+
+/* ====== 体验提示 ====== */
+.guest-tip-card {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 28rpx;
+  margin-bottom: 36rpx;
+  background: rgba(236, 72, 153, 0.04);
+  border: 2rpx solid rgba(236, 72, 153, 0.1);
+}
+
+.guest-tip-icon {
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.guest-tip-text {
+  font-size: 24rpx;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ====== 登录按钮区域 ====== */
+.guest-login-action {
+  text-align: center;
+  padding-top: 4rpx;
+}
+
+.guest-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 28rpx 76rpx;
+  border-radius: 9999rpx;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  color: white;
+  font-size: 30rpx;
+  font-weight: bold;
+  box-shadow: 0 14rpx 44rpx -14rpx rgba(236, 72, 153, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-25deg);
+  animation: sweep 4s infinite;
+}
+
+.guest-login-btn-arrow {
+  font-size: 30rpx;
+  transition: transform 0.3s ease;
+}
+
+.guest-login-btn:active .guest-login-btn-arrow {
+  transform: translateX(6rpx);
+}
+
+.guest-login-hint {
+  font-size: 22rpx;
+  color: #94a3b8;
+  display: block;
+  margin-top: 24rpx;
+}
+
+@keyframes sweep {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+/* 功能卡片交错淡入 */
+.guest-feature-grid .guest-feature-card:nth-child(1) {
+  animation: fadeInUp 0.5s ease-out 0.1s both;
+}
+.guest-feature-grid .guest-feature-card:nth-child(2) {
+  animation: fadeInUp 0.5s ease-out 0.2s both;
+}
+.guest-feature-grid .guest-feature-card:nth-child(3) {
+  animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+.guest-feature-grid .guest-feature-card:nth-child(4) {
+  animation: fadeInUp 0.5s ease-out 0.4s both;
+}
+
+/* Emoji 动画 */
+.feature-emoji-diary {
+  animation: diary-write 3s ease-in-out infinite;
+}
+.feature-emoji-cake {
+  animation: cake-candle 2.5s ease-in-out infinite;
+}
+.feature-emoji-chart {
+  animation: chart-wave 3s ease-in-out infinite;
+}
+
+.feature-card-large {
+  animation: fadeInUp 0.8s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card-large:active {
+  transform: scale(0.98);
+}
+
+.button-hover {
+  transform: scale(0.95);
+  opacity: 0.9;
+  transition: all 0.2s ease;
+}

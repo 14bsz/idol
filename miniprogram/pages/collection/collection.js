@@ -34,8 +34,34 @@ Page({
     this.setData({ isLoggedIn });
   },
 
+  // 引导登录（而不是强制跳转）
   goToLogin() {
-    wx.reLaunch({ url: '/pages/login/login' });
+    wx.showModal({
+      title: '登录提示',
+      content: '登录后可以收藏爱豆的精彩照片，是否现在登录？',
+      confirmText: '立即登录',
+      cancelText: '我再看看',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/login/login' });
+        }
+      }
+    });
+  },
+
+  // 需要登录时的提示
+  requireLogin(action = '此操作') {
+    wx.showModal({
+      title: '需要登录',
+      content: `${action}需要登录，是否前往登录？`,
+      confirmText: '去登录',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/login/login' });
+        }
+      }
+    });
   },
 
   loadData() {
@@ -71,6 +97,11 @@ Page({
   },
 
   onAddCollection() {
+    const app = getApp();
+    if (!app.isLoggedIn()) {
+      this.requireLogin('添加收藏');
+      return;
+    }
     wx.navigateTo({ 
       url: '/pages/collection-add/collection-add',
       events: {

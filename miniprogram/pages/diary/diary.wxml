@@ -1,13 +1,51 @@
 <view class="p-6 space-y-6 pb-24">
   <!-- 未登录状态 -->
-  <view wx:if="{{!isLoggedIn}}" class="login-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120rpx 24rpx; text-align: center;">
-    <view class="login-icon" style="width: 140rpx; height: 140rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: flex; align-items: center; justify-content: center; margin-bottom: 32rpx; box-shadow: 0 16rpx 48rpx -16rpx rgba(244, 114, 182, 0.3);">
-      <text style="font-size: 64px;">🔒</text>
+  <view wx:if="{{!isLoggedIn}}" class="guest-view">
+    <!-- 页面标题 -->
+    <view class="page-header" style="margin-bottom: 48rpx;">
+      <text class="font-serif text-3xl font-bold tracking-tight" style="display: block;">时光日记</text>
+      <text class="text-xs text-slate-400 uppercase tracking-widest mt-1 block">Diary of starlight</text>
     </view>
-    <text class="login-title" style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 16rpx;">请先登录</text>
-    <text class="login-desc" style="font-size: 14px; color: #94a3b8; margin-bottom: 48rpx; line-height: 1.6;">登录后才能写日记哦~</text>
-    <view class="login-btn" bindtap="goToLogin" style="padding: 24rpx 64rpx; border-radius: 9999rpx; background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 18px; font-weight: bold; box-shadow: 0 12rpx 32rpx -12rpx rgba(236, 72, 153, 0.5);">
-      立即登录
+
+    <!-- 功能介绍卡片 -->
+    <view class="glass shadow-soft" style="padding: 48rpx; border-radius: 48rpx; margin-bottom: 32rpx; border-top: 2rpx solid rgba(255,255,255,0.4);">
+      <view style="text-align: center; margin-bottom: 32rpx;">
+        <view style="width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, #fce4ec, #f3e5f5); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24rpx;">
+          <text style="font-size: 48px;">📝</text>
+        </view>
+        <text style="font-size: 28rpx; font-weight: bold; color: #1e293b; display: block; margin-bottom: 16rpx;">记录每个心动瞬间</text>
+        <text style="font-size: 24rpx; color: #64748b; line-height: 1.6; display: block;">用文字和图片记录追星的点点滴滴</text>
+      </view>
+
+      <!-- 功能特点 -->
+      <view style="display: grid; gap: 24rpx;">
+        <view style="display: flex; align-items: center; gap: 24rpx; padding: 24rpx; background: rgba(255,255,255,0.6); border-radius: 24rpx;">
+          <text style="font-size: 40rpx;">📷</text>
+          <view style="flex: 1;">
+            <text style="font-size: 24rpx; font-weight: bold; color: #334155; display: block;">图文并茂</text>
+            <text style="font-size: 20rpx; color: #94a3b8;">支持添加多张图片和视频</text>
+          </view>
+        </view>
+        <view style="display: flex; align-items: center; gap: 24rpx; padding: 24rpx; background: rgba(255,255,255,0.6); border-radius: 24rpx;">
+          <text style="font-size: 40rpx;">🏷️</text>
+          <view style="flex: 1;">
+            <text style="font-size: 24rpx; font-weight: bold; color: #334155; display: block;">标签分类</text>
+            <text style="font-size: 20rpx; color: #94a3b8;">用标签快速找到想看的日记</text>
+          </view>
+        </view>
+        <view style="display: flex; align-items: center; gap: 24rpx; padding: 24rpx; background: rgba(255,255,255,0.6); border-radius: 24rpx;">
+          <text style="font-size: 40rpx;">📌</text>
+          <view style="flex: 1;">
+            <text style="font-size: 24rpx; font-weight: bold; color: #334155; display: block;">置顶收藏</text>
+            <text style="font-size: 20rpx; color: #94a3b8;">重要日记可以置顶显示</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 温馨提示 -->
+    <view style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+      <text style="font-size: 24rpx; color: #94a3b8; line-height: 1.8;">💡 登录后可以记录你的追星日记<br/>你可以先浏览其他功能哦</text>
     </view>
   </view>
 

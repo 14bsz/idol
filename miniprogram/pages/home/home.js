@@ -8,7 +8,8 @@ Page({
     diaryCount: 0,
     showMenu: false,
     anniversaries: [],
-    isHovering: false
+    isHovering: false,
+    showGuestTip: false  // 游客提示
   },
 
   dateRefreshTimer: null,
@@ -49,8 +50,28 @@ Page({
     this.setData({ isLoggedIn });
   },
 
+  // 引导用户登录（而不是强制跳转）
   goToLogin() {
-    wx.reLaunch({ url: '/pages/login/login' });
+    wx.showModal({
+      title: '登录提示',
+      content: '登录后可以记录你的追星时光，是否现在登录？',
+      confirmText: '立即登录',
+      cancelText: '随便看看',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/login/login' });
+        }
+      }
+    });
+  },
+
+  // 显示游客提示
+  showGuestTipModal() {
+    this.setData({ showGuestTip: true });
+  },
+
+  hideGuestTip() {
+    this.setData({ showGuestTip: false });
   },
 
   loadData() {

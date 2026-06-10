@@ -9,7 +9,13 @@ Page({
     if (app.globalData.token) {
       app.restoreSession().then((isLoggedIn) => {
         if (isLoggedIn && app.isLoggedIn()) {
-          wx.switchTab({ url: '/pages/home/home' });
+          // 如果已经登录，返回上一页或跳转首页
+          const pages = getCurrentPages();
+          if (pages.length > 1) {
+            wx.navigateBack();
+          } else {
+            wx.switchTab({ url: '/pages/home/home' });
+          }
         }
       });
     }
@@ -38,7 +44,13 @@ Page({
         duration: 1500
       });
       setTimeout(() => {
-        wx.switchTab({ url: '/pages/home/home' });
+        // 登录成功后，返回上一页或跳转首页
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
+          wx.navigateBack();
+        } else {
+          wx.switchTab({ url: '/pages/home/home' });
+        }
       }, 1500);
     }).catch((err) => {
       this.setData({ loading: false });

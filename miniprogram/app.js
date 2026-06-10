@@ -79,15 +79,12 @@ App({
         if (userId) this.globalData.userId = userId;
         if (userInfo) this.globalData.userInfo = this.normalizeUserInfo(userInfo);
       } else {
+        // 允许游客浏览，不清空所有数据
         this.globalData.authChecked = true;
         this.globalData.userInfo = null;
         this.globalData.token = null;
         this.globalData.userId = null;
-        this.globalData.currentIdol = null;
-        this.globalData.idols = [];
-        this.globalData.diaries = [];
-        this.globalData.collections = [];
-        this.globalData.anniversaries = [];
+        // 不清空爱豆、日记等数据，允许游客查看本地缓存
       }
     } catch (e) {
       console.error('加载本地数据失败', e);
@@ -502,9 +499,8 @@ App({
   },
 
   checkLoginAndRedirect() {
-    if (this.globalData.authChecked && !this.globalData.token) {
-      wx.reLaunch({ url: '/pages/login/login' });
-    }
+    // 移除自动跳转逻辑，允许游客浏览
+    // 各页面自行判断是否需要登录，并在需要时引导用户登录
   },
 
   isLoggedIn() {
@@ -518,7 +514,7 @@ App({
 
     if (!this.globalData.token) {
       this.globalData.authChecked = true;
-      this.checkLoginAndRedirect();
+      // 不再自动跳转，允许游客浏览
       return Promise.resolve(false);
     }
 
@@ -537,7 +533,7 @@ App({
       .finally(() => {
         this.globalData.authChecked = true;
         this.restoreSessionPromise = null;
-        this.checkLoginAndRedirect();
+        // 不再自动跳转
       });
 
     return this.restoreSessionPromise;
@@ -1059,8 +1055,22 @@ App({
             title: '已退出登录',
             icon: 'success'
           });
+          // 不跳转登录页，而是刷新当前页面显示未登录状态
           setTimeout(() => {
-            wx.reLaunch({ url: '/pages/login/login' });
+            const pages = getCurrentPages();
+            const currentPage = pages[pages.length - 1];
+            if (currentPage && currentPage.route) {
+              // 如果当前在 TabBar 页面，使用 reLaunch 刷新
+              const tabBarPages = ['pages/home/home', 'pages/diary/diary', 'pages/collection/collection', 'pages/profile/profile'];
+              if (tabBarPages.includes(currentPage.route)) {
+                wx.reLaunch({ url: '/' + currentPage.route });
+              } else {
+                // 非 TabBar 页面，返回首页
+                wx.reLaunch({ url: '/pages/home/home' });
+              }
+            } else {
+              wx.reLaunch({ url: '/pages/home/home' });
+            }
           }, 1500);
         }
       }
@@ -1211,7 +1221,23 @@ App({
           }
         } else if (statusCode === 401) {
           this.clearAllData();
-          wx.reLaunch({ url: '/pages/login/login' });
+          // 不再强制跳转登录页，而是提示用户
+          wx.showModal({
+            title: '登录已过期',
+            content: '请重新登录以继续使用',
+            confirmText: '去登录',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                wx.navigateTo({ 
+                  url: '/pages/login/login',
+                  fail: () => {
+                    wx.switchTab({ url: '/pages/home/home' });
+                  }
+                });
+              }
+            }
+          });
           reject(new Error('登录已过期，请重新登录'));
         } else {
           reject(new Error('请求失败'));
