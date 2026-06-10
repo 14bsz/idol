@@ -519,6 +519,7 @@ App({
     }
 
     this.globalData.authChecked = false;
+    this.globalData._restoringSession = true;
     this.restoreSessionPromise = this.fetchAllDataFromServer()
       .then(() => this.warmupMediaUrls([this.globalData.userInfo?.avatarUrlRaw || this.globalData.userInfo?.avatarUrl]))
       .then(() => {
@@ -528,10 +529,22 @@ App({
       })
       .catch((err) => {
         console.error('恢复登录态失败:', err);
+        // 静默清除无效登录态，不弹窗不跳转
+        this.globalData.token = null;
+        this.globalData.userId = null;
+        this.globalData.userInfo = null;
+        this.globalData.currentIdol = null;
+        try {
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userId');
+          wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('currentIdol');
+        } catch (e) {}
         return false;
       })
       .finally(() => {
         this.globalData.authChecked = true;
+        this.globalData._restoringSession = false;
         this.restoreSessionPromise = null;
         // 不再自动跳转
       });
@@ -1220,6 +1233,11 @@ App({
             reject(new Error(data.message || '请求失败'));
           }
         } else if (statusCode === 401) {
+          // 如果是恢复会话期间的 401，静默处理不弹窗
+          if (this.globalData._restoringSession) {
+            reject(new Error('登录已过期'));
+            return;
+          }
           this.clearAllData();
           // 不再强制跳转登录页，而是提示用户
           wx.showModal({
