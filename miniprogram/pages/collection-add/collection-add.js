@@ -18,7 +18,8 @@ Page({
     navTop: 0,
     eventDate: '',  // 活动日期
     showDatePicker: false,
-    maxDate: ''  // 最大日期（今天）
+    maxDate: '',  // 最大日期（今天）
+    isSubmitting: false  // 防重复提交标记
   },
 
   onLoad() {
@@ -222,6 +223,12 @@ Page({
   },
 
   saveCollection() {
+    // 防止重复提交
+    if (this.data.isSubmitting) {
+      console.log('[Collection Add] 正在保存中,忽略重复点击');
+      return;
+    }
+
     const { category, imageUrl, notes, tags, eventDate } = this.data;
     
     if (!imageUrl) {
@@ -229,7 +236,15 @@ Page({
       return;
     }
 
-    util.showLoading('正在珍藏中...');
+    // 设置提交状态锁
+    this.setData({ isSubmitting: true });
+    console.log('[Collection Add] 开始保存收藏...');
+
+    wx.showLoading({ 
+      title: '正在珍藏中...', 
+      mask: true 
+    });
+    
     const currentIdol = app.globalData.currentIdol;
     const newItem = {
       idolId: currentIdol.id,
@@ -241,7 +256,7 @@ Page({
     };
 
     app.saveCollectionToServer(newItem).then(() => {
-      util.hideLoading();
+      wx.hideLoading();
       util.showToast('珍藏成功', 'success');
       
       // 发送全局事件通知收藏夹更新
@@ -254,9 +269,12 @@ Page({
         wx.navigateBack();
       }, 1000);
     }).catch((err) => {
-      util.hideLoading();
+      wx.hideLoading();
       console.error('保存到后端失败:', err);
       util.showToast(err.message || '珍藏失败', 'error');
+    }).finally(() => {
+      // 无论成功失败,都释放提交锁
+      this.setData({ isSubmitting: false });
     });
   },
 

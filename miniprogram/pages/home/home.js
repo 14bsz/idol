@@ -1,4 +1,5 @@
 const shareUtil = require('../../utils/share.js');
+const util = require('../../utils/util.js');
 
 Page({
   data: {
@@ -103,7 +104,7 @@ Page({
   },
 
   calculateDaysInLove(entryDate) {
-    const entry = new Date(entryDate);
+    const entry = util.parseDate(entryDate);
     const today = new Date();
     const diff = Math.floor((today - entry) / (1000 * 60 * 60 * 24));
     return Math.max(0, diff);
@@ -130,7 +131,7 @@ Page({
         return defaultDate;
       }
       const monthDay = dateStr.slice(5);
-      let targetDate = new Date(`${currentYear}-${monthDay}`);
+      let targetDate = util.parseDate(`${currentYear}-${monthDay}`);
       if (today > targetDate) {
         targetDate = new Date(currentYear + 1, targetDate.getMonth(), targetDate.getDate());
       }

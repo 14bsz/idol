@@ -37,7 +37,8 @@ Page({
     navTop: 0,
     totalNavHeight: 0,
     selectedTagCount: 0,
-    maxTagCount: 3
+    maxTagCount: 3,
+    isSubmitting: false  // 防重复提交标记
   },
 
   updateCanSave() {
@@ -47,6 +48,11 @@ Page({
   },
 
   onLoad(options) {
+    // 重置提交状态
+    this._saveLock = false;
+    this._lastSaveTime = 0;
+    this.setData({ isSubmitting: false });
+    
     // 计算导航栏高度，与 collection-add 保持一致
     const systemInfo = wx.getSystemInfoSync();
     const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
@@ -292,6 +298,13 @@ Page({
   },
 
   saveDiary() {
+    // 三重防护：时间戳防抖 + 同步锁 + disabled按钮
+    const now = Date.now();
+    if (this._saveLock || (now - this._lastSaveTime) < 3000) {
+      console.log('[Diary Editor] 正在保存中,忽略重复点击');
+      return;
+    }
+
     const { content, mood, images, mode, editingDiary } = this.data;
     const selectedTags = this.getSelectedTags();
     
@@ -302,6 +315,18 @@ Page({
 
     const currentIdol = app.globalData.currentIdol;
     
+    // 立即上锁（同步，不等 setData）
+    this._saveLock = true;
+    this._lastSaveTime = now;
+    this.setData({ isSubmitting: true });
+    console.log('[Diary Editor] 开始保存日记...');
+    
+    // 显示加载提示
+    wx.showLoading({ 
+      title: mode === 'edit' ? '修改中...' : '保存中...', 
+      mask: true 
+    });
+    
     const saveToLocalAndBackend = (diary) => {
       const normalizedDiary = app.normalizeDiary ? app.normalizeDiary(diary) : diary;
       const diaryIndex = app.globalData.diaries.findIndex(d => d.id == normalizedDiary.id);
@@ -311,6 +336,30 @@ Page({
         app.globalData.diaries.unshift(normalizedDiary);
       }
       app.saveData();
+    };
+
+    const handleSuccess = (message) => {
+      wx.hideLoading();
+      util.showToast(message, 'success');
+      // 释放提交锁
+      this._saveLock = false;
+      this.setData({ isSubmitting: false });
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1000);
+    };
+
+    const handleError = (err, fallbackDiary, message) => {
+      console.error('保存到后端失败:', err);
+      wx.hideLoading();
+      saveToLocalAndBackend(fallbackDiary);
+      util.showToast(message, 'success');
+      // 释放提交锁
+      this._saveLock = false;
+      this.setData({ isSubmitting: false });
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1000);
     };
 
     if (mode === 'edit' && editingDiary) {
@@ -324,13 +373,9 @@ Page({
       
       app.saveDiaryToServer(updatedDiary).then((savedDiary) => {
         saveToLocalAndBackend(savedDiary || updatedDiary);
-        util.showToast('修改成功', 'success');
-        setTimeout(() => wx.navigateBack(), 1000);
+        handleSuccess('修改成功');
       }).catch((err) => {
-        console.error('保存到后端失败:', err);
-        saveToLocalAndBackend(updatedDiary);
-        util.showToast('修改成功（本地）', 'success');
-        setTimeout(() => wx.navigateBack(), 1000);
+        handleError(err, updatedDiary, '修改成功（本地）');
       });
     } else {
       const newDiary = {
@@ -344,19 +389,31 @@ Page({
 
       app.saveDiaryToServer(newDiary).then((savedDiary) => {
         saveToLocalAndBackend(savedDiary || newDiary);
-        util.showToast('保存成功', 'success');
-        setTimeout(() => wx.navigateBack(), 1000);
+        handleSuccess('保存成功');
       }).catch((err) => {
-        console.error('保存到后端失败:', err);
         newDiary.id = util.generateId();
-        saveToLocalAndBackend(newDiary);
-        util.showToast('保存成功（本地）', 'success');
-        setTimeout(() => wx.navigateBack(), 1000);
+        handleError(err, newDiary, '保存成功（本地）');
       });
     }
   },
 
   goBack() {
+    // 如果正在提交，阻止返回
+    if (this._saveLock) {
+      wx.showToast({
+        title: '正在保存中...',
+        icon: 'none',
+        duration: 1500
+      });
+      return;
+    }
     wx.navigateBack();
+  },
+
+  onUnload() {
+    // 页面卸载时重置提交状态
+    this._saveLock = false;
+    this._lastSaveTime = 0;
+    this.setData({ isSubmitting: false });
   }
 })

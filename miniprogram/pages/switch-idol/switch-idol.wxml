@@ -148,7 +148,7 @@
       <view class="field-group">
         <text class="field-label">应援色</text>
         <view class="color-preview" bindtap="showColorPicker">
-          <view class="color-preview-circle" style="background-color: {{newSupportColor}};"></view>
+          <view class="color-preview-circle" style="background: {{newSupportColor}};"></view>
           <text class="color-preview-text">{{selectedColorName}}</text>
           <text class="color-preview-arrow">›</text>
         </view>
@@ -206,7 +206,7 @@
                 data-name="{{color.name}}"
                 style="--theme-color: {{color.value}};"
               >
-                <view class="color-circle" style="background-color: {{color.value}};"></view>
+                <view class="color-circle" style="background: {{color.value}};"></view>
                 <text class="color-name">{{color.name}}</text>
               </view>
             </block>

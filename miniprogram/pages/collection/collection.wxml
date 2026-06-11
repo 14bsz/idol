@@ -1,4 +1,20 @@
-<view class="container" style="padding: 24px; padding-bottom: 96px;">
+<view class="container" style="padding: 24px; padding-bottom: {{isManageMode ? '240px' : '96px'}};">
+  <!-- WXS辅助函数 -->
+  <wxs module="utils">
+    var isSelected = function(selectedIds, id) {
+      if (!selectedIds || !id) return false;
+      for (var i = 0; i < selectedIds.length; i++) {
+        if (selectedIds[i] == id) {
+          return true;
+        }
+      }
+      return false;
+    };
+    module.exports = {
+      isSelected: isSelected
+    };
+  </wxs>
+  
   <!-- 未登录状态 -->
   <view wx:if="{{!isLoggedIn}}" class="guest-view">
     <!-- 页面标题 -->
@@ -61,8 +77,19 @@
         <text class="page-title title-serif" style="font-size: 30px; font-weight: bold;">专属收藏夹</text>
         <text class="page-subtitle" style="font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 4rpx; display: block;">Starlight collection</text>
       </view>
-      <view bindtap="onAddCollection" class="add-btn">
-        <text class="add-text">+</text>
+      <view style="display: flex; gap: 16rpx; align-items: center;">
+        <!-- 管理按钮 -->
+        <view wx:if="{{!isManageMode}}" bindtap="enterManageMode" class="manage-btn" style="padding: 16rpx 32rpx; background: rgba(244, 114, 182, 0.1); border-radius: 48rpx; display: flex; align-items: center; gap: 8rpx;">
+          <text style="font-size: 24rpx; color: #f472b6; font-weight: 500;">管理</text>
+        </view>
+        <!-- 取消按钮(管理模式下) -->
+        <view wx:else bindtap="exitManageMode" class="cancel-btn" style="padding: 16rpx 32rpx; background: rgba(100, 116, 139, 0.1); border-radius: 48rpx; display: flex; align-items: center; gap: 8rpx;">
+          <text style="font-size: 24rpx; color: #64748b; font-weight: 500;">取消</text>
+        </view>
+        <!-- 添加按钮 -->
+        <view bindtap="onAddCollection" class="add-btn">
+          <text class="add-text">+</text>
+        </view>
       </view>
     </view>
 
@@ -80,9 +107,18 @@
 
     <view class="collection-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 24rpx;">
       <block wx:for="{{filteredCollections}}" wx:key="id">
-        <view class="collection-item" bindtap="onItemClick" data-item="{{item}}" style="position: relative; aspect-ratio: 1/1; border-radius: 32rpx; overflow: hidden; border: 1rpx solid white;">
+        <view class="collection-item" bindtap="{{isManageMode ? 'onToggleSelect' : 'onItemClick'}}" data-item="{{item}}" data-id="{{item.id}}" style="position: relative; aspect-ratio: 1/1; border-radius: 32rpx; overflow: hidden; border: 1rpx solid white;">
           <image src="{{item.imageUrl}}" mode="aspectFill" style="width: 100%; height: 100%;" />
-          <view class="item-overlay" style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%, transparent 100%); opacity: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 16rpx;">
+          
+          <!-- 管理模式下的选择框 -->
+          <view wx:if="{{isManageMode}}" class="select-overlay" style="position: absolute; inset: 0; background: {{utils.isSelected(selectedIds, item.id) ? 'rgba(244, 114, 182, 0.3)' : 'rgba(0,0,0,0.2)'}}; display: flex; align-items: flex-start; justify-content: flex-end; padding: 16rpx;">
+            <view class="checkbox" style="width: 48rpx; height: 48rpx; border-radius: 50%; background: {{utils.isSelected(selectedIds, item.id) ? '#f472b6' : 'rgba(255,255,255,0.8)'}}; border: 2rpx solid {{utils.isSelected(selectedIds, item.id) ? '#f472b6' : '#e2e8f0'}}; display: flex; align-items: center; justify-content: center;">
+              <text wx:if="{{utils.isSelected(selectedIds, item.id)}}" style="color: white; font-size: 32rpx; font-weight: bold;">✓</text>
+            </view>
+          </view>
+          
+          <!-- 非管理模式下的悬浮信息 -->
+          <view wx:else class="item-overlay" style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%, transparent 100%); opacity: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 16rpx;">
             <text class="item-category" style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 4rpx;">{{item.category}}</text>
             <view class="item-bottom" style="display: flex; align-items: center; justify-content: space-between;">
               <text class="item-date" style="font-size: 10px; color: white; font-family: 'Courier New', monospace;">{{item.createdAt}}</text>
@@ -93,7 +129,8 @@
               </view>
             </view>
           </view>
-          <view wx:if="{{item.notes}}" class="note-dot" style="position: absolute; top: 16rpx; left: 16rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: #f472b6; box-shadow: 0 0 0 8rpx rgba(244,114,182,0.2);" />
+          
+          <view wx:if="{{item.notes && !isManageMode}}" class="note-dot" style="position: absolute; top: 16rpx; left: 16rpx; width: 8rpx; height: 8rpx; border-radius: 50%; background: #f472b6; box-shadow: 0 0 0 8rpx rgba(244,114,182,0.2);" />
         </view>
       </block>
 
@@ -103,6 +140,25 @@
         </view>
         <text class="empty-text-main" style="font-size: 32rpx; font-weight: bold; color: #1e293b; margin-bottom: 12rpx;">该分类下还没有收藏哦。</text>
         <text class="empty-text-tip" style="font-size: 24rpx; color: #94a3b8; line-height: 1.6; max-width: 480rpx;">点击右上角+号，把你珍藏的图片按自定义分类慢慢归档吧</text>
+      </view>
+    </view>
+
+    <!-- 批量操作底部栏 -->
+    <view wx:if="{{isManageMode}}" class="batch-action-bar" style="position: fixed; bottom: 160rpx; left: 0; right: 0; background: white; padding: 24rpx 32rpx; box-shadow: 0 -2rpx 20rpx rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: space-between; z-index: 100; border-top: 1rpx solid #f1f5f9; border-radius: 32rpx 32rpx 0 0;">
+      <view style="display: flex; align-items: center; gap: 24rpx;">
+        <view bindtap="onToggleSelectAll" style="display: flex; align-items: center; gap: 12rpx; padding: 8rpx;">
+          <view style="width: 40rpx; height: 40rpx; border-radius: 50%; border: 2rpx solid {{isAllSelected ? '#f472b6' : '#cbd5e1'}}; background: {{isAllSelected ? '#f472b6' : 'white'}}; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+            <text wx:if="{{isAllSelected}}" style="color: white; font-size: 28rpx; font-weight: bold;">✓</text>
+          </view>
+          <text style="font-size: 28rpx; color: #334155; font-weight: 500;">全选</text>
+        </view>
+        <text style="font-size: 26rpx; color: #64748b;">已选 {{selectedIds.length}} 项</text>
+      </view>
+      <view 
+        bindtap="onBatchDelete" 
+        style="padding: 24rpx 48rpx; background: {{selectedIds.length > 0 ? 'linear-gradient(135deg, #f87171, #dc2626)' : '#f1f5f9'}}; color: {{selectedIds.length > 0 ? 'white' : '#94a3b8'}}; border-radius: 48rpx; font-size: 30rpx; font-weight: 600; box-shadow: {{selectedIds.length > 0 ? '0 4rpx 12rpx rgba(220, 38, 38, 0.3)' : 'none'}}; transition: all 0.3s;"
+      >
+        删除{{selectedIds.length > 0 ? ' (' + selectedIds.length + ')' : ''}}
       </view>
     </view>
   </view>
@@ -142,6 +198,17 @@
             <view class="notes-content">
               <text class="notes-text">{{currentDetail.notes}}</text>
             </view>
+          </view>
+
+          <!-- 删除按钮 -->
+          <view class="detail-actions" style="margin-top: 32rpx; padding: 0 24rpx;">
+            <button 
+              class="delete-btn" 
+              bindtap="onDeleteCollection"
+              style="width: 100%; padding: 24rpx; background: #fee; border: 2rpx solid #fcc; border-radius: 24rpx; color: #dc2626; font-size: 28rpx; font-weight: bold;"
+            >
+              删除收藏
+            </button>
           </view>
         </scroll-view>
       </view>

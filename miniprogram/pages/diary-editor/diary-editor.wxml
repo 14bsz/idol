@@ -78,9 +78,11 @@
     </view>
   </scroll-view>
 
-  <view class="footer">
-    <button class="save-btn {{!canSave ? 'disabled' : ''}}" bindtap="saveDiary" disabled="{{!canSave}}">
-      {{mode === 'edit' ? '发布' : '保存'}}
-    </button>
+  <view class="footer" catchtap="">
+    <view class="save-btn-wrap {{isSubmitting ? 'submitting' : ''}}">
+      <button class="save-btn {{!canSave || isSubmitting ? 'disabled' : ''}}" catchtap="saveDiary" disabled="{{!canSave || isSubmitting}}">
+        {{isSubmitting ? '保存中...' : (mode === 'edit' ? '发布' : '保存')}}
+      </button>
+    </view>
   </view>
 </view>

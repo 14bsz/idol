@@ -1,3 +1,5 @@
+const util = require('../../utils/util.js');
+
 Page({
   data: {
     scheduleId: '',
@@ -204,7 +206,7 @@ Page({
 
     const currentYear = baseDate.getFullYear();
     const monthDay = String(dateStr).slice(5);
-    let targetDate = new Date(`${currentYear}-${monthDay}`);
+    let targetDate = util.parseDate(`${currentYear}-${monthDay}`);
 
     if (baseDate > targetDate) {
       targetDate = new Date(currentYear + 1, targetDate.getMonth(), targetDate.getDate());
@@ -250,29 +252,51 @@ Page({
   },
 
   onChangeCover() {
-    const that = this;
-    wx.chooseImage({
+    wx.chooseMedia({
       count: 1,
-      sizeType: ['compressed'],
+      mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        const tempFilePath = res.tempFilePaths[0];
-        wx.showLoading({ title: '上传中...' });
-        const app = getApp();
-        app.uploadFile(tempFilePath).then((uploadRes) => {
-          wx.hideLoading();
-          const imageUrl = uploadRes.data.tempUrl || app.resolveMediaUrl(uploadRes.data.url);
-          const detail = that.data.anniversaryDetail;
-          const idol = that.data.currentIdol;
-          that.setCustomCoverImage(idol.id, detail.id, detail.isCustom, uploadRes.data.url);
-          that.setData({ backgroundImage: imageUrl });
-          wx.showToast({ title: '封面已更新', icon: 'success' });
-        }).catch((err) => {
-          wx.hideLoading();
-          console.error('封面上传失败:', err);
-          wx.showToast({ title: '上传失败，请重试', icon: 'none' });
+        const tempFilePath = res.tempFiles[0].tempFilePath;
+        this.openCropper(tempFilePath, 'banner', (croppedPath) => {
+          this.uploadCoverImage(croppedPath);
         });
+      },
+      fail(err) {
+        console.error('选择图片失败', err);
+        wx.showToast({ title: '选择图片失败', icon: 'none' });
       }
+    });
+  },
+
+  openCropper(filePath, type, onSuccess) {
+    wx.navigateTo({
+      url: `/pages/image-cropper/image-cropper?type=${type}&src=${encodeURIComponent(filePath)}`,
+      events: {
+        cropSuccess: (result) => {
+          if (result && result.tempFilePath && typeof onSuccess === 'function') {
+            onSuccess(result.tempFilePath);
+          }
+        }
+      }
+    });
+  },
+
+  uploadCoverImage(filePath) {
+    wx.showLoading({ title: '上传中...' });
+    const app = getApp();
+    app.uploadFile(filePath).then((uploadRes) => {
+      wx.hideLoading();
+      const imageUrl = uploadRes.data.tempUrl || app.resolveMediaUrl(uploadRes.data.url);
+      const detail = this.data.anniversaryDetail;
+      const idol = this.data.currentIdol;
+      this.setCustomCoverImage(idol.id, detail.id, detail.isCustom, uploadRes.data.url);
+      this.setData({ backgroundImage: imageUrl });
+      wx.showToast({ title: '封面已更新', icon: 'success' });
+    }).catch((err) => {
+      wx.hideLoading();
+      console.error('封面上传失败:', err);
+      wx.showToast({ title: '上传失败，请重试', icon: 'none' });
     });
   },
 

@@ -103,7 +103,7 @@
             <view class="idol-nickname" style="font-size: 20rpx; opacity: 0.9; padding: 8rpx 16rpx; border-radius: 9999rpx; background: rgba(255,255,255,0.2); backdrop-filter: blur(16rpx);">
               {{currentIdol.nickname || 'My Star'}}
             </view>
-            <view class="idol-color" style="width: 24rpx; height: 24rpx; border-radius: 50%; border: 4rpx solid rgba(255,255,255,0.5); background-color: {{currentIdol.supportColor}};" />
+            <view class="idol-color" style="width: 24rpx; height: 24rpx; border-radius: 50%; border: 4rpx solid rgba(255,255,255,0.5); background: {{currentIdol.supportColor}};" />
           </view>
         </view>
       </view>

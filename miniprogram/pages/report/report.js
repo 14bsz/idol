@@ -1,3 +1,5 @@
+const util = require('../../utils/util.js');
+
 Page({
   data: {
     currentIdol: null,
@@ -32,12 +34,12 @@ Page({
       const anniversaries = this.buildAnniversaries(currentIdol, app.globalData.anniversaries);
       
       const monthlyEntries = entries.filter(e => {
-        const date = new Date(e.createdAt);
+        const date = util.parseDate(e.createdAt);
         return date >= monthStart && date <= monthEnd;
       });
 
       const monthlyCollections = collections.filter(c => {
-        const date = new Date(c.createdAt);
+        const date = util.parseDate(c.createdAt);
         return date >= monthStart && date <= monthEnd;
       });
 
@@ -54,10 +56,9 @@ Page({
       const { progress, nextDays, nextTitle } = this.calculateAnniversaryProgress(now, anniversaries);
 
       // --- New Stats Calculation ---
-      const activeDaysSet = new Set();
-      monthlyEntries.forEach(e => activeDaysSet.add(e.createdAt.split('T')[0]));
-      monthlyCollections.forEach(c => activeDaysSet.add(c.createdAt.split('T')[0]));
-      const activeDays = activeDaysSet.size;
+      // 陪伴天数 = 入坑天数（从入坑日期到今天）
+      const entryDate = util.parseDate(currentIdol.entryDate);
+      const activeDays = Math.max(0, Math.floor((now - entryDate) / (1000 * 60 * 60 * 24)));
 
       const tagCounts = {};
       monthlyEntries.forEach(e => {
@@ -215,7 +216,7 @@ Page({
     const currentYear = now.getFullYear();
 
     anniversaries.forEach(ann => {
-      const annDate = new Date(ann.date);
+      const annDate = util.parseDate(ann.date);
       const thisYearAnnDate = new Date(currentYear, annDate.getMonth(), annDate.getDate());
       
       if (thisYearAnnDate >= now) {

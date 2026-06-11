@@ -659,7 +659,7 @@ page {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  margin-top: 24rpx;
+  margin-top: 36rpx;
 }
 
 .manage-btn {

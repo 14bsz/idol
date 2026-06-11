@@ -1,3 +1,5 @@
+const util = require('../../utils/util.js');
+
 Page({
   data: {
     currentIdol: null,
@@ -14,7 +16,8 @@ Page({
         iconText: '',
         wechatReminder: false,
         calendarReminder: false
-      }
+      },
+    isSubmitting: false  // 防重复提交标记
   },
 
   dateRefreshTimer: null,
@@ -82,7 +85,7 @@ Page({
         return today;
       }
       const monthDay = dateStr.slice(5);
-      let targetDate = new Date(`${currentYear}-${monthDay}`);
+      let targetDate = util.parseDate(`${currentYear}-${monthDay}`);
       if (today > targetDate) {
         targetDate = new Date(currentYear + 1, targetDate.getMonth(), targetDate.getDate());
       }
@@ -268,6 +271,12 @@ Page({
   },
 
   onSaveAnniversary() {
+    // 防止重复提交
+    if (this.data.isSubmitting) {
+      console.log('[Anniversary] 正在保存中,忽略重复点击');
+      return;
+    }
+
     const app = getApp();
     const { newAnniversary, customAnniversaries, currentIdol, editingBuiltInId } = this.data;
     const title = String(newAnniversary.title || '').trim();
@@ -278,6 +287,10 @@ Page({
       return;
     }
 
+    // 设置提交状态锁
+    this.setData({ isSubmitting: true });
+    console.log('[Anniversary] 开始保存纪念日...');
+
     if (editingBuiltInId) {
       const updatedIdol = { ...currentIdol };
       if (editingBuiltInId === 'birthday') {
@@ -286,7 +299,7 @@ Page({
         updatedIdol.debutDate = newAnniversary.date;
       }
       
-      wx.showLoading({ title: '保存中...' });
+      wx.showLoading({ title: '保存中...', mask: true });
       app.saveIdolToServer(updatedIdol).then(() => {
         wx.hideLoading();
         this.setData({ 
@@ -310,6 +323,9 @@ Page({
         wx.hideLoading();
         console.error('修改失败:', err);
         wx.showToast({ title: '修改失败，请重试', icon: 'none' });
+      }).finally(() => {
+        // 释放提交锁
+        this.setData({ isSubmitting: false });
       });
       return;
     }
@@ -318,7 +334,7 @@ Page({
     today.setHours(0, 0, 0, 0);
     const currentYear = today.getFullYear();
     const monthDay = date.slice(5);
-    let targetDate = new Date(`${currentYear}-${monthDay}`);
+    let targetDate = util.parseDate(`${currentYear}-${monthDay}`);
     if (today > targetDate) {
       targetDate = new Date(currentYear + 1, targetDate.getMonth(), targetDate.getDate());
     }
@@ -337,7 +353,7 @@ Page({
       color: '#FFB6C1'
     };
 
-    wx.showLoading({ title: '保存中...' });
+    wx.showLoading({ title: '保存中...', mask: true });
 
     app.saveAnniversaryToServer(newItem).then((res) => {
       wx.hideLoading();
@@ -374,6 +390,9 @@ Page({
       wx.hideLoading();
       console.error('保存失败:', err);
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+    }).finally(() => {
+      // 释放提交锁
+      this.setData({ isSubmitting: false });
     });
   },
 
@@ -772,7 +791,7 @@ Page({
     
     const all = [...this.data.anniversaries, ...validCustomAnniversaries.map(item => {
       const monthDay = item.date.slice(5);
-      let targetDate = new Date(`${currentYear}-${monthDay}`);
+      let targetDate = util.parseDate(`${currentYear}-${monthDay}`);
       if (today > targetDate) {
         targetDate = new Date(currentYear + 1, targetDate.getMonth(), targetDate.getDate());
       }

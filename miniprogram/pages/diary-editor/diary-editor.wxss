@@ -70,9 +70,21 @@
   box-shadow: 0 8rpx 24rpx rgba(255, 105, 180, 0.3);
 }
 
+.save-btn-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.save-btn-wrap.submitting {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 .save-btn.disabled {
   background: #E8E8E8;
   color: #CCCCCC;
+  pointer-events: none;
 }
 
 .content-scroll {

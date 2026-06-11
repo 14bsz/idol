@@ -32,7 +32,9 @@ Page({
           { name: '少女粉', value: '#FFC0CB' },
           { name: '玫瑰粉', value: '#FF69B4' },
           { name: '芭比粉', value: '#FF1493' },
-          { name: '热情粉', value: '#FF007F' }
+          { name: '热情粉', value: '#FF007F' },
+          { name: '浅粉紫', value: '#E0B0FF' },
+          { name: '珊瑚粉', value: '#FF7F7F' }
         ]
       },
       {
@@ -43,7 +45,10 @@ Page({
           { name: '深紫', value: '#9400D3' },
           { name: '浅紫', value: '#DDA0DD' },
           { name: '丁香紫', value: '#B19CD9' },
-          { name: '皇家紫', value: '#7851A9' }
+          { name: '皇家紫', value: '#7851A9' },
+          { name: '阿米紫', value: '#5C2D91' },
+          { name: '星空紫', value: '#4B0082' },
+          { name: '电光紫', value: '#8F00FF' }
         ]
       },
       {
@@ -54,7 +59,9 @@ Page({
           { name: '婴儿蓝', value: '#89CFF0' },
           { name: '宝石蓝', value: '#191970' },
           { name: '湖蓝色', value: '#4AA0D8' },
-          { name: '蔚蓝色', value: '#4F86F7' }
+          { name: '蔚蓝色', value: '#4F86F7' },
+          { name: '北极星蓝', value: '#0047AB' },
+          { name: '薄荷蓝', value: '#B2FFFF' }
         ]
       },
       {
@@ -76,7 +83,8 @@ Page({
           { name: '橙色', value: '#FFA500' },
           { name: '珊瑚橙', value: '#FF7F50' },
           { name: '蜜桃橙', value: '#FFCC80' },
-          { name: '落日橙', value: '#FD6A02' }
+          { name: '落日橙', value: '#FD6A02' },
+          { name: '太阳黄', value: '#FFD700' }
         ]
       },
       {
@@ -91,20 +99,28 @@ Page({
         ]
       },
       {
-        category: '主流爱豆专属色',
+        category: '银白/金属色系',
         colors: [
-          { name: '阿米紫', value: '#5C2D91' },
-          { name: '爱丽棒银', value: '#C0C0C0' },
-          { name: '北极星蓝', value: '#0047AB' },
-          { name: '浅粉紫', value: '#E0B0FF' },
-          { name: '珊瑚粉', value: '#FF7F7F' },
-          { name: '薄荷蓝', value: '#B2FFFF' },
-          { name: '湖水绿', value: '#50C878' },
-          { name: '紫罗兰', value: '#8F00FF' },
-          { name: '太阳黄', value: '#FFD700' },
-          { name: '玫瑰金', value: '#B76E79' },
           { name: '珍珠白', value: '#F0F0F0' },
-          { name: '星空紫', value: '#4B0082' }
+          { name: '爱丽棒银', value: '#C0C0C0' },
+          { name: '玫瑰金', value: '#B76E79' }
+        ]
+      },
+      {
+        category: '双色系',
+        colors: [
+          { name: '星空紫粉', value: 'linear-gradient(135deg, #5C2D91 0%, #FFB7DD 100%)' },
+          { name: '甜酷粉黑', value: 'linear-gradient(135deg, #FF69B4 0%, #1a1a1a 100%)' },
+          { name: '新绿渐变', value: 'linear-gradient(135deg, #BFFF00 0%, #1a1a1a 100%)' },
+          { name: '红黑渐变', value: 'linear-gradient(135deg, #FF0000 0%, #1a1a1a 100%)' },
+          { name: '杏桃霓红', value: 'linear-gradient(135deg, #FFD28E 0%, #FF00FF 100%)' },
+          { name: '薄荷蓝绿', value: 'linear-gradient(135deg, #98FF98 0%, #89CFF0 100%)' },
+          { name: '紫金渐变', value: 'linear-gradient(135deg, #9400D3 0%, #FFD700 100%)' },
+          { name: '珊瑚魔红', value: 'linear-gradient(135deg, #FF7F7F 0%, #FF00FF 100%)' },
+          { name: '梅紫星蓝', value: 'linear-gradient(135deg, #8E4585 0%, #6B3FA0 100%)' },
+          { name: '水玉暖炽', value: 'linear-gradient(135deg, #50C878 0%, #FF6B35 100%)' },
+          { name: '金竹渐变', value: 'linear-gradient(135deg, #FFD700 0%, #6B8E23 100%)' },
+          { name: '玫瑰宁蓝', value: 'linear-gradient(135deg, #F7CAC9 0%, #92A8D1 100%)' }
         ]
       }
     ]
@@ -121,7 +137,7 @@ Page({
   loadData() {
     const idols = app.globalData.idols;
     const currentIdolId = app.globalData.currentIdol?.id || '';
-    const today = util.formatDate(new Date().toISOString());
+    const today = util.formatDate(new Date());
     
     this.setData({
       idols,
@@ -189,7 +205,7 @@ Page({
         newAvatarRaw: idol.avatarRaw || idol.avatar || '',
         newBannerImage: idol.bannerImage || idol.bannerImageRaw || '',
         newBannerImageRaw: idol.bannerImageRaw || idol.bannerImage || '',
-        newEntryDate: idol.entryDate || util.formatDate(new Date().toISOString()),
+        newEntryDate: idol.entryDate || util.formatDate(new Date()),
         newBirthday: idol.birthday || '1997-09-01',
         newDebutDate: idol.debutDate || '2013-06-13',
         newSupportColor: idol.supportColor || '#FFC0CB',
@@ -330,7 +346,7 @@ Page({
       supportColor: newSupportColor,
       debutDate: newDebutDate,
       birthday: newBirthday,
-      entryDate: newEntryDate || util.formatDate(new Date().toISOString()),
+      entryDate: newEntryDate || util.formatDate(new Date()),
       bannerImage: newBannerImage || 'https://picsum.photos/800/400?random=' + Date.now(),
       bannerImageRaw: newBannerImageRaw || ''
     };
@@ -422,7 +438,7 @@ Page({
           showAddForm: false,
           editingIdol: null
         });
-        this.loadData();
+        wx.switchTab({ url: '/pages/home/home' });
       }, 800);
     }).catch((err) => {
       wx.hideLoading();
