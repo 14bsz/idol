@@ -77,8 +77,10 @@
 
 .content-scroll {
   flex: 1;
+  width: 100%;
   padding: 32rpx;
   padding-bottom: 200rpx;
+  box-sizing: border-box;
 }
 
 .section-label {
@@ -92,6 +94,8 @@
 }
 
 .mood-section {
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 40rpx;
 }
 
@@ -155,28 +159,47 @@
 }
 
 .content-section {
+  width: calc(100% - 4rpx);
+  margin: 0 auto 40rpx;
+  box-sizing: border-box;
+}
+
+.content-card {
+  position: relative;
+  width: 100%;
+  min-height: 360rpx;
+  padding: 28rpx 32rpx 64rpx;
   background: #FFFFFF;
   border-radius: 32rpx;
-  padding: 32rpx;
-  margin-bottom: 40rpx;
+  box-sizing: border-box;
   box-shadow: 0 4rpx 16rpx rgba(255, 105, 180, 0.08);
 }
 
 .content-input {
   width: 100%;
   min-height: 300rpx;
+  display: block;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   font-size: 32rpx;
   line-height: 1.6;
   color: #333333;
   background: transparent;
+  text-align: left;
+}
+
+.content-placeholder {
+  color: #94a3b8;
 }
 
 .char-count {
-  display: block;
+  position: absolute;
+  right: 32rpx;
+  bottom: 24rpx;
   text-align: right;
   font-size: 20rpx;
   color: #CCCCCC;
-  margin-top: 16rpx;
 }
 
 .image-section {

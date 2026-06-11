@@ -1,5 +1,7 @@
 const { CLOUD_ENV_ID, CLOUD_SERVICE_NAME, CLOUD_PUBLIC_BASE_URL, getRuntimeEnvVersion, getApiBaseUrl, getUploadUrl, getApiConfigError, useCloudContainer } = require('./utils/env');
 
+const DEFAULT_COLLECTION_CATEGORIES = ['神图', '小卡', '物料', '语录', '线下'];
+
 App({
   globalData: {
     userInfo: null,
@@ -10,7 +12,8 @@ App({
     idols: [],
     diaries: [],
     collections: [],
-    anniversaries: []
+    anniversaries: [],
+    collectionCategoriesByIdol: {}
   },
 
   baseUrl: '',
@@ -31,6 +34,18 @@ App({
       uploadUrl: this.uploadUrl,
       apiConfigError: this.apiConfigError
     });
+    
+    // 🔍 调试：打印系统信息
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      console.log('[App] 系统信息:', {
+        platform: systemInfo.platform,
+        version: systemInfo.version,
+        SDKVersion: systemInfo.SDKVersion
+      });
+    } catch (e) {
+      console.error('[App] 获取系统信息失败:', e);
+    }
     
     // 初始化云开发（云托管调用依赖 wx.cloud）
     if (wx.cloud) {
@@ -303,6 +318,8 @@ App({
       imageUrl: this.resolveMediaUrl(imageUrlRaw),
       category: collection.category,
       notes: collection.notes,
+      tags: collection.tags || '',
+      eventDate: collection.eventDate || '',
       createdAt: collection.createdAt
     };
   },
@@ -453,6 +470,7 @@ App({
     wx.removeStorageSync('token');
     wx.removeStorageSync('userId');
     wx.removeStorageSync('userInfo');
+    wx.removeStorageSync('collectionCategoriesByIdol');
     this.globalData = {
       userInfo: null,
       token: null,
@@ -462,7 +480,8 @@ App({
       idols: [],
       diaries: [],
       collections: [],
-      anniversaries: []
+      anniversaries: [],
+      collectionCategoriesByIdol: {}
     };
   },
 
@@ -472,6 +491,7 @@ App({
       wx.setStorageSync('diaries', this.globalData.diaries);
       wx.setStorageSync('collections', this.globalData.collections);
       wx.setStorageSync('anniversaries', this.globalData.anniversaries);
+      wx.setStorageSync('collectionCategoriesByIdol', this.globalData.collectionCategoriesByIdol);
       if (this.globalData.currentIdol) {
         wx.setStorageSync('currentIdol', this.globalData.currentIdol);
       }
@@ -487,12 +507,14 @@ App({
       const collections = wx.getStorageSync('collections');
       const anniversaries = wx.getStorageSync('anniversaries');
       const currentIdol = wx.getStorageSync('currentIdol');
+      const collectionCategoriesByIdol = wx.getStorageSync('collectionCategoriesByIdol');
       
       if (idols) this.globalData.idols = idols.map(idol => this.normalizeIdol(idol));
       if (diaries) this.globalData.diaries = diaries.map(diary => this.normalizeDiary(diary));
       if (collections) this.globalData.collections = collections.map(collection => this.normalizeCollection(collection));
       if (anniversaries) this.globalData.anniversaries = anniversaries;
       if (currentIdol) this.globalData.currentIdol = this.normalizeIdol(currentIdol);
+      if (collectionCategoriesByIdol) this.globalData.collectionCategoriesByIdol = collectionCategoriesByIdol;
     } catch (e) {
       console.error('加载本地数据失败', e);
     }
@@ -521,7 +543,10 @@ App({
     this.globalData.authChecked = false;
     this.globalData._restoringSession = true;
     this.restoreSessionPromise = this.fetchAllDataFromServer()
-      .then(() => this.warmupMediaUrls([this.globalData.userInfo?.avatarUrlRaw || this.globalData.userInfo?.avatarUrl]))
+      .then(() => this.warmupMediaUrls([this.globalData.userInfo?.avatarUrlRaw || this.globalData.userInfo?.avatarUrl])
+        .catch((error) => {
+          console.warn('恢复登录态时预热用户媒体失败:', error);
+        }))
       .then(() => {
         this.refreshUserInfo();
         this.saveAuthToStorage();
@@ -529,18 +554,25 @@ App({
       })
       .catch((err) => {
         console.error('恢复登录态失败:', err);
-        // 静默清除无效登录态，不弹窗不跳转
-        this.globalData.token = null;
-        this.globalData.userId = null;
-        this.globalData.userInfo = null;
-        this.globalData.currentIdol = null;
-        try {
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userId');
-          wx.removeStorageSync('userInfo');
-          wx.removeStorageSync('currentIdol');
-        } catch (e) {}
-        return false;
+        const errorMessage = err && err.message ? err.message : '';
+        if (errorMessage.includes('登录已过期')) {
+          // 仅在登录态真正失效时清理认证信息
+          this.globalData.token = null;
+          this.globalData.userId = null;
+          this.globalData.userInfo = null;
+          this.globalData.currentIdol = null;
+          try {
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userId');
+            wx.removeStorageSync('userInfo');
+            wx.removeStorageSync('currentIdol');
+          } catch (e) {}
+          return false;
+        }
+        // 普通业务接口失败不应连带清空登录态
+        this.refreshUserInfo();
+        this.saveAuthToStorage();
+        return true;
       })
       .finally(() => {
         this.globalData.authChecked = true;
@@ -655,12 +687,37 @@ App({
   },
 
   fetchAllDataFromServer() {
-    return Promise.all([
-      this.fetchIdolsFromServer(),
-      this.fetchDiariesFromServer(),
-      this.fetchCollectionsFromServer(),
-      this.fetchAnniversariesFromServer()
-    ]);
+    const requestTasks = [
+      { key: 'idols', task: this.fetchIdolsFromServer() },
+      { key: 'diaries', task: this.fetchDiariesFromServer() },
+      { key: 'collections', task: this.fetchCollectionsFromServer() },
+      { key: 'anniversaries', task: this.fetchAnniversariesFromServer() }
+    ];
+
+    return Promise.allSettled(requestTasks.map(item => item.task))
+      .then((results) => {
+        const failures = results
+          .map((result, index) => {
+            if (result.status !== 'rejected') {
+              return null;
+            }
+            const reason = result.reason;
+            return {
+              key: requestTasks[index].key,
+              message: reason && reason.message ? reason.message : '未知错误'
+            };
+          })
+          .filter(Boolean);
+
+        const authFailure = failures.find(item => item.message.includes('登录已过期'));
+        if (authFailure) {
+          throw new Error(authFailure.message);
+        }
+
+        if (failures.length > 0) {
+          console.warn('[App] 部分数据拉取失败，但保留当前登录态:', failures);
+        }
+      });
   },
 
   fetchIdolsFromServer() {
@@ -746,6 +803,60 @@ App({
           console.error('获取收藏列表失败:', err);
           reject(err);
         });
+    });
+  },
+
+  getCollectionCategoriesForIdol(idolId) {
+    const merged = new Set(DEFAULT_COLLECTION_CATEGORIES);
+    const categoryMap = this.globalData.collectionCategoriesByIdol || {};
+    const cachedCategories = categoryMap[String(idolId)] || [];
+    cachedCategories.forEach(item => {
+      if (item) {
+        merged.add(item);
+      }
+    });
+
+    this.globalData.collections
+      .filter(item => String(item.idolId) === String(idolId))
+      .map(item => item.category)
+      .filter(Boolean)
+      .forEach(item => merged.add(item));
+
+    return Array.from(merged);
+  },
+
+  fetchCollectionCategories(idolId) {
+    return new Promise((resolve, reject) => {
+      if (!idolId) {
+        resolve(DEFAULT_COLLECTION_CATEGORIES.slice());
+        return;
+      }
+
+      this.request({
+        url: '/collection-categories',
+        method: 'GET',
+        data: { idolId }
+      }).then((res) => {
+        const categories = Array.isArray(res.data) ? res.data : [];
+        this.globalData.collectionCategoriesByIdol[String(idolId)] = categories;
+        this.saveData();
+        resolve(this.getCollectionCategoriesForIdol(idolId));
+      }).catch(reject);
+    });
+  },
+
+  createCollectionCategory(idolId, name) {
+    return new Promise((resolve, reject) => {
+      this.request({
+        url: '/collection-categories',
+        method: 'POST',
+        data: { idolId, name }
+      }).then((res) => {
+        const categories = Array.isArray(res.data) ? res.data : [];
+        this.globalData.collectionCategoriesByIdol[String(idolId)] = categories;
+        this.saveData();
+        resolve(this.getCollectionCategoriesForIdol(idolId));
+      }).catch(reject);
     });
   },
 
@@ -899,7 +1010,8 @@ App({
             imageUrl: this.getPersistedMediaValue(preparedCollection.imageUrl, preparedCollection.imageUrlRaw),
             category: preparedCollection.category,
             notes: preparedCollection.notes,
-            tags: preparedCollection.tags || ''
+            tags: preparedCollection.tags || '',
+            eventDate: preparedCollection.eventDate || null
           };
           
           if (preparedCollection.id) {
@@ -1226,16 +1338,17 @@ App({
       }
 
       const handleResponse = (statusCode, data) => {
+        const message = data && typeof data === 'object' ? data.message : '';
         if (statusCode === 200) {
           if (data.code === 200) {
             resolve(data);
           } else {
-            reject(new Error(data.message || '请求失败'));
+            reject(new Error(message || '请求失败'));
           }
         } else if (statusCode === 401) {
           // 如果是恢复会话期间的 401，静默处理不弹窗
           if (this.globalData._restoringSession) {
-            reject(new Error('登录已过期'));
+            reject(new Error(message || '登录已过期'));
             return;
           }
           this.clearAllData();
@@ -1258,7 +1371,7 @@ App({
           });
           reject(new Error('登录已过期，请重新登录'));
         } else {
-          reject(new Error('请求失败'));
+          reject(new Error(message || `请求失败，HTTP ${statusCode}`));
         }
       };
 

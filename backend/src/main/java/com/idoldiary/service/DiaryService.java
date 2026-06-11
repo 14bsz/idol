@@ -39,7 +39,8 @@ public class DiaryService extends ServiceImpl<DiaryMapper, Diary> {
         Long userId = StpUtil.getLoginIdAsLong();
         diary.setUserId(userId);
         if (diary.getCreatedAt() == null) {
-            diary.setCreatedAt(LocalDate.now());
+            // 使用中国时区的当前日期
+            diary.setCreatedAt(LocalDate.now(java.time.ZoneId.of("Asia/Shanghai")));
         }
         this.save(diary);
         return diary;

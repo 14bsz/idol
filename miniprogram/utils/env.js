@@ -7,7 +7,7 @@ const CLOUD_PUBLIC_BASE_URL = 'https://springboot-h9k1-267159-8-1440827759.sh.ru
 
 // 开发环境直接访问本地后端（HTTP，无需配置合法域名）
 const API_BASE_URLS = {
-  develop: 'http://192.168.111.1:8080/api',
+  develop: 'http://localhost:8080/api',  // 本地开发使用 localhost
   // 体验版 / 正式版通过云托管调用，不再需要填公网域名
   trial: '',
   release: ''
@@ -15,7 +15,7 @@ const API_BASE_URLS = {
 
 // 云托管文件访问/上传回退地址
 const UPLOAD_URLS = {
-  develop: 'http://192.168.111.1:8080/api/files/upload',
+  develop: 'http://localhost:8080/api/files/upload',  // 本地开发使用 localhost
   trial: `${CLOUD_PUBLIC_BASE_URL}/api/files/upload`,
   release: `${CLOUD_PUBLIC_BASE_URL}/api/files/upload`
 };

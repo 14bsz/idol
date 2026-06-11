@@ -91,7 +91,7 @@
                 <image class="reminder-icon" src="/images/wechat-icon.svg" wx:if="{{false}}"></image>
                 <text>微信服务通知提醒</text>
               </view>
-              <text class="reminder-desc">到期当天 09:00 通过微信发送消息</text>
+              <text class="reminder-desc">一次性提醒：到期当天 09:00 通过微信发送消息</text>
             </view>
             <view class="reminder-switch-wrap" catchtap="stopPropagation">
               <switch class="reminder-switch" checked="{{newAnniversary.wechatReminder}}" catchchange="onWechatReminderChange" color="#ec4899" />

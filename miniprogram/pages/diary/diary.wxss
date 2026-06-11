@@ -384,10 +384,7 @@
   font-size: 60rpx;
   font-weight: bold;
   color: #FFFFFF;
-  line-height: 96rpx;
-  text-align: center;
-  margin-top: -10rpx;
-  display: block;
+  line-height: 1;
 }
 
 /* 标签筛选区域 */

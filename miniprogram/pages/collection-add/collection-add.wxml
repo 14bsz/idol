@@ -17,7 +17,11 @@
           <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categories}}" wx:key="*this" bindtap="selectCategory" data-category="{{item}}">
             {{item}}
           </view>
+          <view class="category-item category-create-item" bindtap="addCustomCategory">
+            + 自定义
+          </view>
         </view>
+        <text class="category-tip">支持保留默认分类，也可以添加你自己的收藏分类</text>
       </view>
 
       <view class="image-section">
@@ -61,12 +65,31 @@
         <text class="section-label">心动笔记</text>
         <textarea 
           class="notes-input" 
-          placeholder="记录下收到这张卡时的心情吧..." 
+          placeholder="记录下当时的心情和感受吧...&#10;例如：演唱会现场氛围太好了！看到真人更帅了！" 
           value="{{notes}}" 
           bindinput="onNotesInput"
           maxlength="500"
           auto-height
         ></textarea>
+      </view>
+
+      <view class="date-section">
+        <text class="section-label">活动日期（可选）</text>
+        <view class="date-picker-wrapper">
+          <picker 
+            mode="date" 
+            value="{{eventDate}}" 
+            bindchange="onDateChange"
+            end="{{maxDate}}"
+          >
+            <view class="date-display {{eventDate ? 'has-date' : ''}}">
+              <text class="date-icon">📅</text>
+              <text class="date-text">{{eventDate || '选择这张图片的时间'}}</text>
+            </view>
+          </picker>
+          <text wx:if="{{eventDate}}" class="date-clear" bindtap="clearEventDate">×</text>
+        </view>
+        <text class="date-hint">记录这张图片对应的活动或拍摄日期</text>
       </view>
 
       <view class="tags-section">

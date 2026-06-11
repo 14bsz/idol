@@ -116,6 +116,21 @@
   font-weight: 600;
 }
 
+.category-create-item {
+  color: #ec4899;
+  border-style: dashed;
+  border-color: rgba(244, 114, 182, 0.4);
+  background: rgba(255, 240, 245, 0.8);
+}
+
+.category-tip {
+  display: block;
+  font-size: 20rpx;
+  color: #94a3b8;
+  margin-top: 12rpx;
+  padding-left: 8rpx;
+}
+
 .image-section {
   margin-bottom: 24rpx;
 }
@@ -276,6 +291,72 @@
   color: #333333;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
   box-sizing: border-box;
+}
+
+.date-section {
+  margin-bottom: 40rpx;
+}
+
+.date-picker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  border: 2rpx solid rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.date-display.has-date {
+  border-color: rgba(244,114,182,0.3);
+  background: linear-gradient(135deg, rgba(255,240,245,0.5), rgba(255,228,236,0.5));
+}
+
+.date-icon {
+  font-size: 32rpx;
+}
+
+.date-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.date-display:not(.has-date) .date-text {
+  color: #94a3b8;
+}
+
+.date-clear {
+  position: absolute;
+  right: 24rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #f472b6;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  font-weight: 300;
+  z-index: 10;
+}
+
+.date-hint {
+  display: block;
+  font-size: 20rpx;
+  color: #94a3b8;
+  margin-top: 12rpx;
+  padding-left: 8rpx;
 }
 
 .tags-section {

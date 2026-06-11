@@ -14,7 +14,7 @@
           <text style="font-size: 48px;">📷</text>
         </view>
         <text style="font-size: 28rpx; font-weight: bold; color: #1e293b; display: block; margin-bottom: 16rpx;">珍藏爱豆的美好瞬间</text>
-        <text style="font-size: 24rpx; color: #64748b; line-height: 1.6; display: block;">分类整理神图、小卡、物料和语录</text>
+        <text style="font-size: 24rpx; color: #64748b; line-height: 1.6; display: block;">默认分类随手整理，也支持自定义你的专属标签夹</text>
       </view>
 
       <!-- 分类展示 -->
@@ -34,6 +34,11 @@
         <view style="padding: 32rpx; background: rgba(255,255,255,0.6); border-radius: 24rpx; text-align: center;">
           <text style="font-size: 40rpx; display: block; margin-bottom: 12rpx;">💬</text>
           <text style="font-size: 24rpx; font-weight: bold; color: #334155; display: block;">语录</text>
+        </view>
+        <view style="padding: 32rpx; background: rgba(255,255,255,0.6); border-radius: 24rpx; text-align: center; grid-column: span 2;">
+          <text style="font-size: 40rpx; display: block; margin-bottom: 12rpx;">🎤</text>
+          <text style="font-size: 24rpx; font-weight: bold; color: #334155; display: block;">线下活动</text>
+          <text style="font-size: 20rpx; color: #64748b; display: block; margin-top: 8rpx;">演唱会 · 见面会 · 音乐节</text>
         </view>
       </view>
 
@@ -97,36 +102,51 @@
           <text style="font-size: 60rpx;">🖼️</text>
         </view>
         <text class="empty-text-main" style="font-size: 32rpx; font-weight: bold; color: #1e293b; margin-bottom: 12rpx;">该分类下还没有收藏哦。</text>
-        <text class="empty-text-tip" style="font-size: 24rpx; color: #94a3b8; line-height: 1.6; max-width: 480rpx;">点击右上角+号，将你珍藏的神图、小卡按照分类--归档吧</text>
+        <text class="empty-text-tip" style="font-size: 24rpx; color: #94a3b8; line-height: 1.6; max-width: 480rpx;">点击右上角+号，把你珍藏的图片按自定义分类慢慢归档吧</text>
       </view>
     </view>
   </view>
 
   <!-- 详情弹窗 -->
-  <view wx:if="{{showDetail}}" class="detail-mask" bindtap="closeDetail" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;">
-    <view class="detail-content" catchtap="" style="width: 90%; max-height: 85vh; background: white; border-radius: 40rpx; overflow: hidden; animation: slideUp 0.3s ease;">
-      <view class="detail-image-wrapper" style="position: relative; width: 100%; aspect-ratio: 1/1;">
-        <image src="{{currentDetail.imageUrl}}" mode="aspectFit" style="width: 100%; height: 100%;" />
-        <view class="close-btn" bindtap="closeDetail" style="position: absolute; top: 24rpx; right: 24rpx; width: 64rpx; height: 64rpx; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-          <text style="color: white; font-size: 32rpx; line-height: 1;">✕</text>
-        </view>
-        <view class="detail-badge" style="position: absolute; bottom: 24rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 9999rpx; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
-          <text style="color: white; font-size: 24rpx; font-weight: bold; text-transform: uppercase;">{{currentDetail.category}}</text>
-        </view>
-      </view>
-      
-      <view class="detail-info" style="padding: 32rpx;">
-        <view class="detail-date" style="color: #94a3b8; font-size: 24rpx; font-family: 'Courier New', monospace; margin-bottom: 16rpx;">{{currentDetail.createdAt}}</view>
-        <view wx:if="{{currentDetail.tagList && currentDetail.tagList.length > 0}}" class="detail-tags" style="margin-bottom: 24rpx;">
-          <view class="tags-label" style="font-size: 22rpx; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 12rpx;">🏷️ 标签</view>
-          <view class="tags-list" style="display: flex; flex-wrap: wrap; gap: 12rpx;">
-            <text class="tag-chip" wx:for="{{currentDetail.tagList}}" wx:key="*this" style="padding: 8rpx 20rpx; background: linear-gradient(135deg, #fff0f5, #ffe4ec); border-radius: 9999rpx; font-size: 22rpx; color: #ec4899; font-weight: bold;">{{item}}</text>
+  <view wx:if="{{showDetail}}" class="detail-mask" bindtap="closeDetail">
+    <view class="detail-container">
+      <view class="detail-content" catchtap="">
+        <view class="detail-image-wrapper">
+          <image src="{{currentDetail.imageUrl}}" mode="aspectFill" class="detail-image" />
+          <view class="detail-badge">
+            <text>{{currentDetail.category}}</text>
           </view>
         </view>
-        <view wx:if="{{currentDetail.notes}}" class="detail-notes" style="background: #fff5f7; border-radius: 24rpx; padding: 24rpx;">
-          <view class="notes-label" style="font-size: 22rpx; color: #f472b6; font-weight: bold; text-transform: uppercase; margin-bottom: 12rpx;">💭 心动笔记</view>
-          <text class="notes-text" style="color: #475569; font-size: 28rpx; line-height: 1.8; white-space: pre-wrap;">{{currentDetail.notes}}</text>
-        </view>
+        
+        <scroll-view scroll-y class="detail-info">
+          <view class="detail-header">
+            <view class="detail-date-box">
+              <text class="date-label">创建时间</text>
+              <text class="date-value">{{currentDetail.createdAt}}</text>
+            </view>
+            <view wx:if="{{currentDetail.eventDate}}" class="detail-date-box event-date-box">
+              <text class="date-label">活动日期</text>
+              <text class="date-value">{{currentDetail.eventDate}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{currentDetail.tagList && currentDetail.tagList.length > 0}}" class="detail-tags">
+            <view class="section-title">相关标签</view>
+            <view class="tags-list">
+              <text class="tag-chip" wx:for="{{currentDetail.tagList}}" wx:key="*this">{{item}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{currentDetail.notes}}" class="detail-notes">
+            <view class="section-title">心动笔记</view>
+            <view class="notes-content">
+              <text class="notes-text">{{currentDetail.notes}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      <view class="detail-close-area" catchtap="closeDetail">
+        <view class="close-icon-btn"></view>
       </view>
     </view>
   </view>

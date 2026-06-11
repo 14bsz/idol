@@ -495,8 +495,15 @@ Page({
     if (!detail) return;
 
     if (isChecked) {
-      this.addReminderToPhoneCalendar(detail, false);
-      this.setData({ 'reminderStatus.calendarReminder': true });
+      this.addReminderToPhoneCalendar(detail, {
+        isAutoSet: false,
+        onSuccess: () => {
+          this.setData({ 'reminderStatus.calendarReminder': true });
+        },
+        onFail: () => {
+          this.setData({ 'reminderStatus.calendarReminder': false });
+        }
+      });
     } else {
       const calendarKey = this.getLocalCalendarKey(detail);
       let hadCalendarReminder = false;
@@ -742,77 +749,56 @@ Page({
     return `calendar_${sourceType}_${sourceKey}`;
   },
 
-  addReminderToPhoneCalendar(item, isAutoSet = false) {
+  addReminderToPhoneCalendar(item, options = {}) {
+    const isAutoSet = typeof options === 'boolean' ? options : Boolean(options.isAutoSet);
+    const onSuccess = typeof options === 'object' && typeof options.onSuccess === 'function'
+      ? options.onSuccess
+      : null;
+    const onFail = typeof options === 'object' && typeof options.onFail === 'function'
+      ? options.onFail
+      : null;
+
     if (typeof wx.addPhoneCalendar !== 'function') {
       if (!isAutoSet) {
         wx.showToast({ title: '当前微信版本不支持', icon: 'none' });
       }
+      if (onFail) {
+        onFail();
+      }
       return;
     }
 
-    // 先检查权限状态
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.addPhoneCalendar']) {
-          // 已有权限，直接添加日历
-          this.createPhoneCalendarEvent(item, isAutoSet);
-        } else {
-          // 无权限，引导授权
-          if (isAutoSet) return;
-          this.setData({ 'reminderStatus.calendarReminder': false });
-
-          wx.showModal({
-            title: '需要日历权限',
-            content: '开启后可把这条纪念日加入手机日历，并由系统在到期时提醒你。',
-            confirmText: '去开启',
-            success: (modalRes) => {
-              if (!modalRes.confirm) return;
-
-              wx.openSetting({
-                success: (settingRes) => {
-                  if (settingRes.authSetting['scope.addPhoneCalendar']) {
-                    wx.showToast({ title: '权限已开启，请重新点击开关', icon: 'none' });
-                  } else {
-                    wx.showToast({ title: '未开启日历权限', icon: 'none' });
-                  }
-                }
-              });
-            }
-          });
-        }
-      },
-      fail: () => {
-        if (!isAutoSet) {
-          wx.showToast({ title: '获取权限状态失败', icon: 'none' });
-        }
-      }
-    });
+    this.createPhoneCalendarEvent(item, { isAutoSet, onSuccess, onFail });
   },
 
-  createPhoneCalendarEvent(item, isAutoSet = false) {
-    const eventDate = this.normalizeReminderDate(item.date);
-    if (!eventDate) {
+  createPhoneCalendarEvent(item, options = {}) {
+    const isAutoSet = typeof options === 'boolean' ? options : Boolean(options.isAutoSet);
+    const onSuccess = typeof options === 'object' && typeof options.onSuccess === 'function'
+      ? options.onSuccess
+      : null;
+    const onFail = typeof options === 'object' && typeof options.onFail === 'function'
+      ? options.onFail
+      : null;
+    const calendarRange = this.buildCalendarEventRange(item.date);
+    if (!calendarRange) {
       if (!isAutoSet) {
         wx.showToast({ title: '提醒日期无效', icon: 'none' });
       }
+      if (onFail) {
+        onFail();
+      }
       return;
     }
 
-    const startTime = new Date(eventDate);
-    startTime.setHours(9, 0, 0, 0);
-
-    const endTime = new Date(startTime);
-    endTime.setHours(10, 0, 0, 0);
-
     const idolName = this.data.currentIdol ? this.data.currentIdol.name : '爱豆';
-    const dateLabel = this.formatReminderDateValue(eventDate);
+    const dateLabel = this.formatReminderDateValue(calendarRange.eventDate);
     const localKey = this.getLocalCalendarKey(item);
 
     wx.addPhoneCalendar({
       title: item.title,
-      startTime: startTime.getTime(),
-      endTime: endTime.getTime(),
-      description: `和 ${idolName} 有关的重要日程：${item.title}\n日期：${dateLabel}\n来自：爱豆时光日记`,
+      startTime: this.toUnixSeconds(calendarRange.startTime),
+      endTime: this.toUnixSeconds(calendarRange.endTime),
+      description: `和 ${idolName} 有关的重要日程：${item.title}\n纪念日：${dateLabel}\n提醒区间：${this.formatCalendarDateTime(calendarRange.startTime)} - ${this.formatCalendarDateTime(calendarRange.endTime)}\n来自：爱豆时光日记`,
       alarm: true,
       alarmOffset: 3600,
       success: () => {
@@ -821,16 +807,123 @@ Page({
         } catch (err) {
           console.error('保存日历状态失败:', err);
         }
+        if (onSuccess) {
+          onSuccess();
+        }
         wx.showToast({ title: '已加入系统日历', icon: 'success' });
       },
       fail: (err) => {
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
+          if (onFail) {
+            onFail();
+          }
           return;
         }
+
+        if (err && err.errMsg && err.errMsg.includes('can only be invoked by user TAP gesture')) {
+          console.error('添加系统日历失败:', err);
+          if (onFail) {
+            onFail();
+          }
+          if (!isAutoSet) {
+            wx.showToast({ title: '请直接点击开关开启', icon: 'none' });
+          }
+          return;
+        }
+
+        if (this.isCalendarPermissionError(err)) {
+          console.error('添加系统日历失败:', err);
+          if (onFail) {
+            onFail();
+          }
+          if (!isAutoSet) {
+            this.promptOpenCalendarPermission();
+          }
+          return;
+        }
+
         console.error('添加系统日历失败:', err);
+        if (onFail) {
+          onFail();
+        }
         if (!isAutoSet) {
           wx.showToast({ title: '添加失败，请重试', icon: 'none' });
         }
+      }
+    });
+  },
+
+  buildCalendarEventRange(dateValue) {
+    const eventDate = this.normalizeReminderDate(dateValue);
+    if (!eventDate) {
+      return null;
+    }
+
+    const normalizedEventDate = new Date(eventDate.getTime());
+    normalizedEventDate.setHours(0, 0, 0, 0);
+
+    const startTime = new Date(normalizedEventDate.getTime());
+    startTime.setDate(startTime.getDate() - 7);
+    startTime.setHours(16, 0, 0, 0);
+
+    const endTime = new Date(normalizedEventDate.getTime());
+    endTime.setDate(endTime.getDate() - 1);
+    endTime.setHours(16, 0, 0, 0);
+
+    return {
+      eventDate: normalizedEventDate,
+      startTime,
+      endTime
+    };
+  },
+
+  toUnixSeconds(date) {
+    return Math.floor(date.getTime() / 1000);
+  },
+
+  formatCalendarDateTime(dateValue) {
+    const date = this.normalizeReminderDate(dateValue);
+    if (!date) {
+      return '';
+    }
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  },
+
+  isCalendarPermissionError(err) {
+    const errMsg = String(err && err.errMsg ? err.errMsg : '').toLowerCase();
+    return (
+      errMsg.includes('auth deny')
+      || errMsg.includes('auth denied')
+      || errMsg.includes('permission')
+      || errMsg.includes('authorize')
+      || errMsg.includes('denied')
+    );
+  },
+
+  promptOpenCalendarPermission() {
+    this.setData({ 'reminderStatus.calendarReminder': false });
+    wx.showModal({
+      title: '需要日历权限',
+      content: '开启后可把这条纪念日加入手机日历，并由系统在到期时提醒你。',
+      confirmText: '去开启',
+      success: (modalRes) => {
+        if (!modalRes.confirm) {
+          return;
+        }
+
+        wx.openSetting({
+          success: (settingRes) => {
+            if (settingRes.authSetting['scope.addPhoneCalendar']) {
+              wx.showToast({ title: '权限已开启，请重新点击开关', icon: 'none' });
+            } else {
+              wx.showToast({ title: '未开启日历权限', icon: 'none' });
+            }
+          },
+          fail: () => {
+            wx.showToast({ title: '打开设置失败', icon: 'none' });
+          }
+        });
       }
     });
   },

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   ChevronLeft, 
@@ -6,24 +6,51 @@ import {
   Tag, 
   FileText,
   Sparkles,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Plus
 } from 'lucide-react';
 import type { CollectionItem, Idol } from '../../types';
 import { cn } from '../../lib/utils';
 
 interface AddCollectionViewProps {
   idol: Idol;
+  categories: string[];
+  onCreateCategory: (name: string) => Promise<string[]>;
   onClose: () => void;
   onSave: (item: CollectionItem) => void;
 }
 
-const CATEGORIES = ["神图", "小卡", "物料", "语录"];
-
-export const AddCollectionView = ({ idol, onClose, onSave }: AddCollectionViewProps) => {
-  const [category, setCategory] = useState(CATEGORIES[0]);
+export const AddCollectionView = ({ idol, categories, onCreateCategory, onClose, onSave }: AddCollectionViewProps) => {
+  const [category, setCategory] = useState(categories[0] || '神图');
   const [imageUrl, setImageUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (!categories.includes(category)) {
+      setCategory(categories[0] || '神图');
+    }
+  }, [categories, category]);
+
+  const handleCreateCategory = async () => {
+    const nextName = window.prompt('请输入新的收藏分类名称', '');
+    if (!nextName) {
+      return;
+    }
+
+    const trimmedName = nextName.trim();
+    if (!trimmedName) {
+      window.alert('分类名称不能为空');
+      return;
+    }
+
+    try {
+      await onCreateCategory(trimmedName);
+      setCategory(trimmedName);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : '新增分类失败');
+    }
+  };
 
   const handleSimulatedUpload = () => {
     setIsUploading(true);
@@ -88,7 +115,7 @@ export const AddCollectionView = ({ idol, onClose, onSave }: AddCollectionViewPr
             <span className="text-[10px] font-bold tracking-widest uppercase">选择分类</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
@@ -102,6 +129,13 @@ export const AddCollectionView = ({ idol, onClose, onSave }: AddCollectionViewPr
                 {cat}
               </button>
             ))}
+            <button
+              onClick={handleCreateCategory}
+              className="px-4 py-2 rounded-2xl text-xs font-bold transition-all border border-dashed border-pink-200 bg-pink-50/70 text-pink-500 inline-flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" />
+              自定义
+            </button>
           </div>
         </div>
 

@@ -39,7 +39,8 @@ public class CollectService extends ServiceImpl<CollectMapper, Collect> {
         Long userId = StpUtil.getLoginIdAsLong();
         collect.setUserId(userId);
         if (collect.getCreatedAt() == null) {
-            collect.setCreatedAt(LocalDate.now());
+            // 使用中国时区的当前日期
+            collect.setCreatedAt(LocalDate.now(java.time.ZoneId.of("Asia/Shanghai")));
         }
         this.save(collect);
         return collect;

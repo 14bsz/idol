@@ -80,7 +80,8 @@ public class ReminderSubscriptionService extends ServiceImpl<ReminderSubscriptio
         subscription.setRemindDay(remindDate.getDayOfMonth());
         subscription.setTemplateId(wechatConfig.getSubscribeTemplateId());
         subscription.setStatus(1);
-        subscription.setLastSubscribedAt(LocalDateTime.now());
+        // 使用中国时区的当前时间
+        subscription.setLastSubscribedAt(LocalDateTime.now(java.time.ZoneId.of("Asia/Shanghai")));
         subscription.setLastSentYear(remindDate.getYear());
 
         if (subscription.getId() == null) {
@@ -117,7 +118,8 @@ public class ReminderSubscriptionService extends ServiceImpl<ReminderSubscriptio
             return;
         }
 
-        LocalDate today = LocalDate.now();
+        // 使用中国时区的当前日期
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Shanghai"));
         LambdaQueryWrapper<ReminderSubscription> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ReminderSubscription::getStatus, 1)
                 .eq(ReminderSubscription::getRemindMonth, today.getMonthValue())

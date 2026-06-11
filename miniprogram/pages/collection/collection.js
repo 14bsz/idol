@@ -4,7 +4,7 @@ Page({
     collections: [],
     filteredCollections: [],
     selectedCategory: '全部',
-    categories: ['全部', '神图', '小卡', '物料', '语录'],
+    categories: ['全部', '神图', '小卡', '物料', '语录', '线下'],
     showDetail: false,
     currentDetail: {}
   },
@@ -71,12 +71,46 @@ Page({
     
     if (isLoggedIn) {
       const currentIdol = app.globalData.currentIdol;
+      const categories = this.buildCategoryTabs(currentIdol && currentIdol.id);
       const collections = app.globalData.collections
         .filter(c => c.idolId === currentIdol?.id)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      this.setData({ collections });
+      this.setData({ collections, categories });
+      this.ensureSelectedCategoryValid(categories);
       this.updateFilteredCollections();
+      this.loadCategoriesFromServer(currentIdol && currentIdol.id);
     }
+  },
+
+  buildCategoryTabs(idolId) {
+    const app = getApp();
+    if (!idolId) {
+      return ['全部', '神图', '小卡', '物料', '语录', '线下'];
+    }
+    const categories = app.getCollectionCategoriesForIdol(idolId);
+    return ['全部', ...categories];
+  },
+
+  ensureSelectedCategoryValid(categories = this.data.categories) {
+    if (!categories.includes(this.data.selectedCategory)) {
+      this.setData({ selectedCategory: '全部' });
+    }
+  },
+
+  loadCategoriesFromServer(idolId) {
+    if (!idolId) {
+      return;
+    }
+
+    const app = getApp();
+    app.fetchCollectionCategories(idolId).then((categories) => {
+      const nextCategories = ['全部', ...categories];
+      this.setData({ categories: nextCategories });
+      this.ensureSelectedCategoryValid(nextCategories);
+      this.updateFilteredCollections();
+    }).catch((error) => {
+      console.warn('获取收藏分类失败，已使用本地分类回退', error);
+    });
   },
 
   updateFilteredCollections() {

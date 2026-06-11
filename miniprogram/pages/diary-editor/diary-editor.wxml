@@ -19,15 +19,18 @@
     </view>
 
     <view class="content-section">
-      <textarea 
-        class="content-input" 
-        placeholder="记下这一刻的心动..." 
-        value="{{content}}" 
-        bindinput="onContentInput"
-        maxlength="1000"
-        auto-height
-      ></textarea>
-      <text class="char-count">{{content.length}}/1000</text>
+      <view class="content-card">
+        <textarea 
+          class="content-input" 
+          placeholder="记下这一刻的心动..." 
+          placeholder-class="content-placeholder"
+          value="{{content}}" 
+          bindinput="onContentInput"
+          maxlength="1000"
+          auto-height
+        ></textarea>
+        <text class="char-count">{{content.length}}/1000</text>
+      </view>
     </view>
 
     <view class="image-section">

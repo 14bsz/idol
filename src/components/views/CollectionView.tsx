@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   Plus, 
@@ -14,13 +14,20 @@ import type { CollectionItem } from '../../types';
 interface CollectionViewProps {
   onAdd: () => void;
   items: CollectionItem[];
+  categories: string[];
   onRemove?: (id: string) => void;
 }
 
-export const CollectionView = ({ onAdd, items, onRemove }: CollectionViewProps) => {
+export const CollectionView = ({ onAdd, items, categories, onRemove }: CollectionViewProps) => {
   const [selectedCategory, setSelectedCategory] = useState("全部");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const categories = ["全部", "神图", "小卡", "物料", "语录"];
+  const categoryTabs = ['全部', ...categories];
+
+  useEffect(() => {
+    if (!categoryTabs.includes(selectedCategory)) {
+      setSelectedCategory('全部');
+    }
+  }, [categoryTabs, selectedCategory]);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -53,7 +60,7 @@ export const CollectionView = ({ onAdd, items, onRemove }: CollectionViewProps) 
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
-        {categories.map((cat, i) => (
+        {categoryTabs.map((cat, i) => (
           <button 
             key={i} 
             onClick={() => setSelectedCategory(cat)}
@@ -141,8 +148,8 @@ export const CollectionView = ({ onAdd, items, onRemove }: CollectionViewProps) 
         </div>
         <h4 className="text-sm font-bold text-slate-800">开始建立你的物料库</h4>
         <p className="text-[10px] text-slate-400 max-w-[200px] leading-relaxed">
-          点击右上角 + 号，将你珍藏的神图、小卡
-          按照分类一一归档吧
+          点击右上角 + 号，把你珍藏的图片
+          按照自定义分类慢慢归档吧
         </p>
       </div>
     </motion.div>

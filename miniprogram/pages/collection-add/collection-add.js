@@ -1,7 +1,7 @@
 const util = require('../../utils/util.js');
 const app = getApp();
 
-const CATEGORIES = ['神图', '小卡', '物料', '语录'];
+const CATEGORIES = ['神图', '小卡', '物料', '语录', '线下'];
 
 Page({
   data: {
@@ -12,10 +12,13 @@ Page({
     tags: [],
     tagInput: '',
     showTagInput: false,
-    tagSuggestions: ['绝美', '演唱会', '生日', '神颜', '打歌舞台', '机场', '杂志', '签名'],
+    tagSuggestions: ['绝美', '演唱会', '生日', '神颜', '打歌舞台', '机场', '杂志', '签名', '见面会', 'LiveHouse', '音乐节'],
     isUploading: false,
     navHeight: 0,
-    navTop: 0
+    navTop: 0,
+    eventDate: '',  // 活动日期
+    showDatePicker: false,
+    maxDate: ''  // 最大日期（今天）
   },
 
   onLoad() {
@@ -31,14 +34,21 @@ Page({
     const screenWidth = systemInfo.screenWidth;
     const pxToRpx = 750 / screenWidth;
     
+    // 计算今天的日期作为最大可选日期
+    const today = new Date();
+    const maxDate = today.toISOString().split('T')[0];
+    
     this.setData({
       navTop: navTop,
       navHeight: menuButtonInfo.height,
       statusBarHeight: systemInfo.statusBarHeight,
       totalNavHeight: totalNavHeight,
       menuButtonWidth: menuButtonInfo.width,
-      menuButtonRight: (screenWidth - menuButtonInfo.right) * pxToRpx
+      menuButtonRight: (screenWidth - menuButtonInfo.right) * pxToRpx,
+      maxDate: maxDate  // 设置最大日期
     });
+
+    this.loadCategories();
   },
 
   goBack() {
@@ -48,6 +58,61 @@ Page({
   selectCategory(e) {
     const category = e.currentTarget.dataset.category;
     this.setData({ category });
+  },
+
+  loadCategories() {
+    const currentIdol = app.globalData.currentIdol;
+    if (!currentIdol || !currentIdol.id) {
+      this.setData({ categories: CATEGORIES });
+      return;
+    }
+
+    const fallbackCategories = app.getCollectionCategoriesForIdol(currentIdol.id);
+    this.setData({ categories: fallbackCategories });
+
+    app.fetchCollectionCategories(currentIdol.id).then((categories) => {
+      this.setData({ categories });
+      if (!categories.includes(this.data.category)) {
+        this.setData({ category: categories[0] || CATEGORIES[0] });
+      }
+    }).catch((error) => {
+      console.warn('获取收藏分类失败，已使用本地分类回退', error);
+    });
+  },
+
+  addCustomCategory() {
+    const currentIdol = app.globalData.currentIdol;
+    if (!currentIdol || !currentIdol.id) {
+      util.showToast('请先选择爱豆');
+      return;
+    }
+
+    wx.showModal({
+      title: '新增分类',
+      editable: true,
+      placeholderText: '例如：舞台饭拍',
+      success: (res) => {
+        if (!res.confirm) {
+          return;
+        }
+
+        const categoryName = (res.content || '').trim();
+        if (!categoryName) {
+          util.showToast('分类名称不能为空');
+          return;
+        }
+
+        app.createCollectionCategory(currentIdol.id, categoryName).then((categories) => {
+          this.setData({
+            categories,
+            category: categoryName
+          });
+          util.showToast('分类已添加', 'success');
+        }).catch((error) => {
+          util.showToast(error.message || '新增分类失败');
+        });
+      }
+    });
   },
 
   onUrlInput(e) {
@@ -143,8 +208,21 @@ Page({
     this.setData({ imageUrl: '' });
   },
 
+  // 选择活动日期
+  onDateChange(e) {
+    this.setData({ 
+      eventDate: e.detail.value,
+      showDatePicker: false 
+    });
+  },
+
+  // 清除活动日期
+  clearEventDate() {
+    this.setData({ eventDate: '' });
+  },
+
   saveCollection() {
-    const { category, imageUrl, notes, tags } = this.data;
+    const { category, imageUrl, notes, tags, eventDate } = this.data;
     
     if (!imageUrl) {
       util.showToast('请先上传或粘贴图片链接哦');
@@ -158,7 +236,8 @@ Page({
       imageUrl: imageUrl,
       category: category,
       notes: notes,
-      tags: tags.join(',')
+      tags: tags.join(','),
+      eventDate: eventDate || null  // 活动日期（可选）
     };
 
     app.saveCollectionToServer(newItem).then(() => {

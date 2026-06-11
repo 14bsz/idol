@@ -297,18 +297,6 @@ Page({
         this.loadData();
         wx.showToast({ title: '修改成功', icon: 'success' });
         
-        // 先保存日历状态到本地，只要用户勾选了
-        if (newAnniversary.calendarReminder) {
-          const keyItem = { id: editingBuiltInId, isCustom: false };
-          const calendarKey = this.getLocalCalendarKey(keyItem);
-          try {
-            wx.setStorageSync(calendarKey, true);
-            console.log('保存成功，先标记日历状态为开启，key:', calendarKey);
-          } catch (e) {
-            console.error('标记日历状态失败:', e);
-          }
-        }
-        
         // 处理提醒逻辑
         // 为内置纪念日手动构造 item
         const item = {
@@ -361,19 +349,8 @@ Page({
       this.refreshAllAnniversaries();
       wx.showToast({ title: '保存成功', icon: 'success' });
       
-      // 先保存日历状态到本地，只要用户勾选了
       const savedId = res && res.data && res.data.id ? res.data.id : (newItem.id || null);
-      if (newAnniversary.calendarReminder && savedId) {
-        const keyItem = { id: savedId, isCustom: true };
-        const calendarKey = this.getLocalCalendarKey(keyItem);
-        try {
-          wx.setStorageSync(calendarKey, true);
-          console.log('保存成功，先标记日历状态为开启，key:', calendarKey);
-        } catch (e) {
-          console.error('标记日历状态失败:', e);
-        }
-      }
-      
+
       // 处理提醒逻辑
       // 注意：这里需要从刚保存的结果或者重新刷新的列表中找到对应的项
       setTimeout(() => {
@@ -417,7 +394,11 @@ Page({
     }
 
     if (calendarReminder) {
-      this.addReminderToPhoneCalendar(item, true);
+      wx.showModal({
+        title: '系统日历提醒需手动开启',
+        content: '纪念日已保存。由于微信限制，系统日历只能在用户直接点击开关时添加。请保存后进入详情页打开“系统日历提醒”。',
+        showCancel: false
+      });
     } else {
       const calendarKey = this.getLocalCalendarKey(item);
       let hadCalendarReminder = false;
@@ -562,21 +543,15 @@ Page({
   },
 
   createPhoneCalendarEvent(item, isAutoSet = false) {
-    const eventDate = this.normalizeReminderDate(item.date);
+    const calendarRange = this.buildCalendarEventRange(item.date);
 
-    if (!eventDate) {
+    if (!calendarRange) {
       if (!isAutoSet) wx.showToast({ title: '提醒日期无效', icon: 'none' });
       return;
     }
 
-    const startTime = new Date(eventDate);
-    startTime.setHours(9, 0, 0, 0);
-
-    const endTime = new Date(startTime);
-    endTime.setHours(10, 0, 0, 0);
-
     const idolName = this.data.currentIdol?.name || '爱豆';
-    const dateLabel = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}-${String(eventDate.getDate()).padStart(2, '0')}`;
+    const dateLabel = this.formatReminderDateValue(calendarRange.eventDate);
 
     const that = this;
     // 先构造好要保存的 key，打印出来
@@ -585,9 +560,9 @@ Page({
     
     wx.addPhoneCalendar({
       title: item.title,
-      startTime: startTime.getTime(),
-      endTime: endTime.getTime(),
-      description: `和 ${idolName} 有关的重要日程：${item.title}\n日期：${dateLabel}\n来自：爱豆时光日记`,
+      startTime: this.toUnixSeconds(calendarRange.startTime),
+      endTime: this.toUnixSeconds(calendarRange.endTime),
+      description: `和 ${idolName} 有关的重要日程：${item.title}\n纪念日：${dateLabel}\n提醒区间：${this.formatCalendarDateTime(calendarRange.startTime)} - ${this.formatCalendarDateTime(calendarRange.endTime)}\n来自：爱豆时光日记`,
       alarm: true,
       alarmOffset: 3600,
       success: () => {
@@ -608,6 +583,43 @@ Page({
         if (!isAutoSet) wx.showToast({ title: '添加失败，请重试', icon: 'none' });
       }
     });
+  },
+
+  buildCalendarEventRange(dateValue) {
+    const eventDate = this.normalizeReminderDate(dateValue);
+    if (!eventDate) {
+      return null;
+    }
+
+    const normalizedEventDate = new Date(eventDate.getTime());
+    normalizedEventDate.setHours(0, 0, 0, 0);
+
+    const startTime = new Date(normalizedEventDate.getTime());
+    startTime.setDate(startTime.getDate() - 7);
+    startTime.setHours(16, 0, 0, 0);
+
+    const endTime = new Date(normalizedEventDate.getTime());
+    endTime.setDate(endTime.getDate() - 1);
+    endTime.setHours(16, 0, 0, 0);
+
+    return {
+      eventDate: normalizedEventDate,
+      startTime,
+      endTime
+    };
+  },
+
+  toUnixSeconds(date) {
+    return Math.floor(date.getTime() / 1000);
+  },
+
+  formatCalendarDateTime(dateValue) {
+    const date = this.normalizeReminderDate(dateValue);
+    if (!date) {
+      return '';
+    }
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   },
 
   normalizeReminderDate(dateValue) {

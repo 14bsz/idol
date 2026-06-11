@@ -70,7 +70,7 @@
               <view class="reminder-item">
                 <view class="reminder-copy">
                   <text class="reminder-name">微信服务通知提醒</text>
-                  <text class="reminder-desc">到期当天 09:00 通过微信发送消息</text>
+                  <text class="reminder-desc">一次性提醒：到期当天 09:00 通过微信发送消息</text>
                 </view>
                 <switch class="reminder-switch" checked="{{reminderStatus.wechatReminder}}" catchchange="onWechatReminderToggle" color="#ec4899" />
               </view>

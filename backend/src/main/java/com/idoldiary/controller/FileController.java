@@ -46,7 +46,9 @@ public class FileController {
                 ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
                 : ".jpg";
 
-            String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            // 使用中国时区的当前时间生成路径
+            String datePath = LocalDateTime.now(java.time.ZoneId.of("Asia/Shanghai"))
+                .format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             String uuid = UUID.randomUUID().toString();
             String newFilename = uuid + extension;
 

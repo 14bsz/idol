@@ -24,6 +24,7 @@ import { AddCollectionView } from './components/views/AddCollectionView';
 import { SwitchIdolView } from './components/views/SwitchIdolView';
 
 const API_BASE_URL = 'http://localhost:8080/api';
+const DEFAULT_COLLECTION_CATEGORIES = ['神图', '小卡', '物料', '语录', '线下'];
 
 interface ApiResponse<T> {
   code: number;
@@ -31,7 +32,7 @@ interface ApiResponse<T> {
   message: string;
 }
 
-const request = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+const request = async <T,>(url: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -68,6 +69,7 @@ export default function App() {
   const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
   const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
+  const [collectionCategoriesByIdol, setCollectionCategoriesByIdol] = useState<Record<string, string[]>>({});
   
   const [currentIdolId, setCurrentIdolId] = useState<string | null>(null);
   
@@ -116,6 +118,37 @@ export default function App() {
     collections.filter(c => c.idolId === currentIdolId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   [collections, currentIdolId]);
 
+  const currentCollectionCategories = useMemo(() => {
+    const merged = new Set(DEFAULT_COLLECTION_CATEGORIES);
+    const idolId = currentIdolId ? String(currentIdolId) : '';
+    const remoteCategories = idolId ? (collectionCategoriesByIdol[idolId] || []) : [];
+
+    remoteCategories.forEach(item => merged.add(item));
+    filteredCollections
+      .map(item => item.category)
+      .filter(Boolean)
+      .forEach(item => merged.add(item));
+
+    return Array.from(merged);
+  }, [collectionCategoriesByIdol, currentIdolId, filteredCollections]);
+
+  useEffect(() => {
+    if (!currentIdolId) {
+      return;
+    }
+
+    request<string[]>(`/collection-categories?idolId=${currentIdolId}`)
+      .then((categories) => {
+        setCollectionCategoriesByIdol(prev => ({
+          ...prev,
+          [String(currentIdolId)]: categories
+        }));
+      })
+      .catch((error) => {
+        console.error('加载收藏分类失败:', error);
+      });
+  }, [currentIdolId]);
+
   const handleSaveDiary = async (partialEntry: Partial<DiaryEntry>) => {
     try {
       const data = {
@@ -150,6 +183,27 @@ export default function App() {
     } catch (error) {
       console.error('保存收藏失败:', error);
     }
+  };
+
+  const handleCreateCollectionCategory = async (name: string) => {
+    if (!currentIdolId) {
+      throw new Error('请先选择爱豆');
+    }
+
+    const categories = await request<string[]>('/collection-categories', {
+      method: 'POST',
+      body: JSON.stringify({
+        idolId: currentIdolId,
+        name
+      })
+    });
+
+    setCollectionCategoriesByIdol(prev => ({
+      ...prev,
+      [String(currentIdolId)]: categories
+    }));
+
+    return categories;
   };
 
   const handleRemoveCollection = async (id: string) => {
@@ -265,6 +319,7 @@ export default function App() {
         return (
           <CollectionView 
             items={filteredCollections} 
+            categories={currentCollectionCategories}
             onAdd={() => setActiveOverlay('add_collection')} 
             onRemove={handleRemoveCollection}
           />
@@ -411,6 +466,8 @@ export default function App() {
         {activeOverlay === 'add_collection' && (
           <AddCollectionView 
             idol={currentIdol}
+            categories={currentCollectionCategories}
+            onCreateCategory={handleCreateCollectionCategory}
             onClose={() => setActiveOverlay(null)}
             onSave={handleSaveCollection}
           />

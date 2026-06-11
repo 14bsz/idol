@@ -21,7 +21,7 @@ interface ApiResponse<T> {
   message: string;
 }
 
-const request = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+const request = async <T,>(url: string, options: RequestInit = {}): Promise<T> => {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

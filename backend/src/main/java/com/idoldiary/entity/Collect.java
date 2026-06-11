@@ -23,6 +23,8 @@ public class Collect {
 
     private String tags;
 
+    private LocalDate eventDate;  // 活动日期（图片对应的活动/拍摄日期）
+
     private LocalDate createdAt;
 
     @TableField(fill = FieldFill.INSERT)
