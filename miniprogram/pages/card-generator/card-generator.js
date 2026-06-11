@@ -267,7 +267,9 @@ Page({
         const currentEntry = persistedEntry || entry;
         const firstImage = this.getFirstDisplayImage(currentEntry.images);
         const idolAvatar = this.resolveImageUrl(idol.avatar);
-        const shareImage = firstImage || idolAvatar || '';
+        const idolBanner = this.resolveImageUrl(idol.bannerImage);
+        const fallbackImage = idolBanner || idolAvatar || '';
+        const shareImage = firstImage || fallbackImage;
         this.setData({
           entry: currentEntry,
           idol,
@@ -275,10 +277,12 @@ Page({
           displayDate: currentEntry.createdAt.replace(/-/g, '.'),
           displayImage: '',
           idolAvatar,
+          idolBanner,
+          fallbackImage,
           shareTitle: this.buildShareTitle(currentEntry, idol),
           shareImage
         });
-        this.prepareCardDisplayImage(firstImage, idolAvatar);
+        this.prepareCardDisplayImage(firstImage, fallbackImage);
         this.prepareShareImage(shareImage);
       });
     }
@@ -289,8 +293,8 @@ Page({
   },
 
   onCardImageError(e) {
-    if (this.data.idolAvatar && this.data.displayImage !== this.data.idolAvatar) {
-      this.setData({ displayImage: this.data.idolAvatar });
+    if (this.data.fallbackImage && this.data.displayImage !== this.data.fallbackImage) {
+      this.setData({ displayImage: this.data.fallbackImage });
     }
   },
 
