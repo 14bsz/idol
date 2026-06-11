@@ -1,4 +1,14 @@
 <view class="login-container">
+  <!-- 自定义返回按钮，动态适配胶囊高度和位置 -->
+  <view 
+    class="custom-back-btn" 
+    style="top: {{navTop}}px; left: {{navLeft}}px; width: {{navHeight}}px; height: {{navHeight}}px;" 
+    bindtap="onBack"
+    hover-class="custom-back-btn-hover"
+  >
+    <text class="back-arrow"></text>
+  </view>
+
   <view class="login-content">
     <view class="logo-section">
       <view class="logo-icon">

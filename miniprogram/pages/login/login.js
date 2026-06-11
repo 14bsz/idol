@@ -1,10 +1,21 @@
 Page({
   data: {
     loading: false,
-    agreed: false
+    agreed: false,
+    navTop: 0,
+    navHeight: 0,
+    navLeft: 0
   },
 
   onLoad() {
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+    this.setData({
+      navTop: menuButtonInfo.top,
+      navHeight: menuButtonInfo.height,
+      navLeft: (systemInfo.windowWidth - menuButtonInfo.right) + 4 // 往右微调 4px
+    });
+
     const app = getApp();
     if (app.globalData.token) {
       app.restoreSession().then((isLoggedIn) => {
@@ -18,6 +29,15 @@ Page({
           }
         }
       });
+    }
+  },
+
+  onBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: '/pages/home/home' });
     }
   },
 
