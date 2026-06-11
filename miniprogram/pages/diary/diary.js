@@ -247,9 +247,32 @@ Page({
       success: (res) => {
         if (res.confirm) {
           const app = getApp();
-          app.globalData.diaries = app.globalData.diaries.filter(d => d.id != diary.id);
-          this.loadData();
-          wx.showToast({ title: '删除成功', icon: 'success' });
+          
+          // 显示加载提示
+          wx.showLoading({ title: '删除中...', mask: true });
+          
+          // 调用后端删除接口
+          app.request({
+            url: `/diaries/${diary.id}`,
+            method: 'DELETE'
+          }).then(() => {
+            // 重新从后端获取日记列表
+            return app.fetchDiariesFromServer();
+          }).then(() => {
+            // 添加短暂延迟,避免渲染层警告
+            return new Promise(resolve => setTimeout(resolve, 100));
+          }).then(() => {
+            wx.hideLoading();
+            
+            // 重新加载列表
+            this.loadData();
+            
+            wx.showToast({ title: '删除成功', icon: 'success' });
+          }).catch((err) => {
+            wx.hideLoading();
+            console.error('删除日记失败:', err);
+            wx.showToast({ title: '删除失败', icon: 'error' });
+          });
         }
       }
     });
