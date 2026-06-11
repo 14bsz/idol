@@ -65,7 +65,7 @@
         <text class="section-label">心动笔记</text>
         <textarea 
           class="notes-input" 
-          placeholder="记录下当时的心情和感受吧...&#10;例如：演唱会现场氛围太好了！看到真人更帅了！" 
+          placeholder="记录下当时的心情和感受吧...." 
           value="{{notes}}" 
           bindinput="onNotesInput"
           maxlength="500"
