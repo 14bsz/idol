@@ -75,23 +75,26 @@
         </view>
       </view>
 
-      <button 
-        class="save-btn {{isGenerating ? 'disabled' : ''}}"
-        bindtap="handleSave"
-        disabled="{{isGenerating}}"
-      >
-        <image class="save-icon" src="/images/download.svg" mode="aspectFit" />
-        <text class="save-text">{{isGenerating ? '生成中...' : '保存卡片'}}</text>
-      </button>
-    </view>
-  </view>
+      <view class="action-buttons">
+        <button 
+          class="save-btn {{isGenerating ? 'disabled' : ''}}"
+          bindtap="handleSave"
+          disabled="{{isGenerating}}"
+        >
+          <image class="save-icon" src="/images/download.svg" mode="aspectFit" />
+          <text class="save-text">{{isGenerating ? '生成中...' : '保存卡片'}}</text>
+        </button>
 
-  <!-- Toast -->
-  <view wx:if="{{showToast}}" class="toast">
-    <view class="toast-icon">
-      <image style="width: 24rpx; height: 24rpx;" src="/images/sparkles.svg" mode="aspectFit" />
+        <button 
+          class="save-btn share-btn"
+          open-type="share"
+          hidden
+        >
+          <image class="save-icon" src="/images/share.svg" mode="aspectFit" />
+          <text class="save-text">分享</text>
+        </button>
+      </view>
     </view>
-    <text class="toast-text">卡片已成功保存到相册 ✨</text>
   </view>
 
   <canvas

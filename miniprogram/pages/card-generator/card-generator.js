@@ -15,7 +15,6 @@ Page({
     templates: templates,
     selectedTemplate: templates[0],
     isGenerating: false,
-    showToast: false,
     displayContent: '',
     displayDate: '',
     displayImage: '',
@@ -194,9 +193,10 @@ Page({
     const entry = this.data.entry;
     const payload = {
       title: this.data.shareTitle || '爱豆时光日记',
+      // 分享卡片页面本身，而非日记帖子
       path: idol && entry 
-        ? `/pages/diary-detail/diary-detail?id=${encodeURIComponent(entry.id)}&idolId=${encodeURIComponent(idol.id)}` 
-        : '/pages/diary/diary'
+        ? `/pages/card-generator/card-generator?entryId=${encodeURIComponent(entry.id)}&idolId=${encodeURIComponent(idol.id)}` 
+        : '/pages/card-generator/card-generator'
     };
 
     if (imageUrl) {
@@ -254,42 +254,97 @@ Page({
 
   onLoad(options) {
     const app = getApp();
+
+    // 分享功能已隐藏，暂不启用右上角分享菜单
+    // wx.showShareMenu({
+    //   withShareTicket: true,
+    //   menus: ['shareAppMessage', 'shareTimeline']
+    // });
+
+    // 从分享链接打开（携带 entryId + idolId 参数）
+    if (options.entryId && options.idolId) {
+      this._loadFromShareLink(options.entryId, options.idolId);
+      return;
+    }
+    
     const entry = app.globalData.sharingEntry;
     const idol = app.globalData.currentIdol;
-
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
-    });
     
     if (entry && idol) {
-      app.ensureDiaryMediaPersisted(entry).then((persistedEntry) => {
-        const currentEntry = persistedEntry || entry;
-        const firstImage = this.getFirstDisplayImage(currentEntry.images);
-        const idolAvatar = this.resolveImageUrl(idol.avatar);
-        const idolBanner = this.resolveImageUrl(idol.bannerImage);
-        const fallbackImage = idolBanner || idolAvatar || '';
-        const shareImage = firstImage || fallbackImage;
-        this.setData({
-          entry: currentEntry,
-          idol,
-          displayContent: currentEntry.content,
-          displayDate: currentEntry.createdAt.replace(/-/g, '.'),
-          displayImage: '',
-          idolAvatar,
-          idolBanner,
-          fallbackImage,
-          shareTitle: this.buildShareTitle(currentEntry, idol),
-          shareImage
-        });
-        this.prepareCardDisplayImage(firstImage, fallbackImage);
-        this.prepareShareImage(shareImage);
-      });
+      this._initCardData(entry, idol);
     }
+  },
+
+  _loadFromShareLink(entryId, idolId) {
+    const app = getApp();
+    wx.showLoading({ title: '加载中...' });
+    Promise.all([
+      app.request({ url: '/diaries/' + entryId, method: 'GET' }),
+      app.request({ url: '/idols/' + idolId, method: 'GET' })
+    ]).then(([diaryRes, idolRes]) => {
+      wx.hideLoading();
+      const entry = diaryRes.data;
+      const idol = idolRes.data;
+      if (entry && idol) {
+        this._initCardData(app.normalizeDiary(entry), app.normalizeIdol(idol));
+      } else {
+        wx.showToast({ title: '卡片数据不存在', icon: 'none' });
+      }
+    }).catch((err) => {
+      wx.hideLoading();
+      console.error('加载分享卡片失败:', err);
+      wx.showToast({ title: '加载失败，请重试', icon: 'none' });
+    });
+  },
+
+  _initCardData(entry, idol) {
+    const app = getApp();
+    app.ensureDiaryMediaPersisted(entry).then((persistedEntry) => {
+      const currentEntry = persistedEntry || entry;
+      const firstImage = this.getFirstDisplayImage(currentEntry.images);
+      const idolAvatar = this.resolveImageUrl(idol.avatar);
+      const idolBanner = this.resolveImageUrl(idol.bannerImage);
+      const fallbackImage = idolBanner || idolAvatar || '';
+      const shareImage = firstImage || fallbackImage;
+      this.setData({
+        entry: currentEntry,
+        idol,
+        displayContent: currentEntry.content,
+        displayDate: currentEntry.createdAt.replace(/-/g, '.'),
+        displayImage: '',
+        idolAvatar,
+        idolBanner,
+        fallbackImage,
+        shareTitle: this.buildShareTitle(currentEntry, idol),
+        shareImage
+      });
+      this.prepareCardDisplayImage(firstImage, fallbackImage);
+      this.prepareShareImage(shareImage);
+      // 无图片时延迟预渲染（等待 WXML 渲染完成）
+      if (!firstImage) {
+        setTimeout(() => this.preRenderShareCard(), 300);
+      }
+    });
   },
 
   onCardImageLoad(e) {
     this.prepareShareImage(this.data.shareImage || this.data.displayImage);
+    // 图片加载后预渲染画布，生成高清卡片图用于分享
+    this.preRenderShareCard();
+  },
+
+  async preRenderShareCard() {
+    if (this._shareCardReady) return;
+    this._shareCardReady = true;
+    try {
+      await this.renderCardToCanvas();
+      const tempFilePath = await this.exportCanvasFile();
+      if (tempFilePath) {
+        this.setData({ shareImage: tempFilePath });
+      }
+    } catch (e) {
+      console.warn('预渲染分享卡片失败，使用原始图片:', e);
+    }
   },
 
   onCardImageError(e) {
@@ -324,6 +379,9 @@ Page({
     this.setData({
       selectedTemplate: template
     });
+    // 切换模板后重新渲染分享卡片
+    this._shareCardReady = false;
+    this.preRenderShareCard();
   },
 
   getCanvasNode() {
@@ -545,6 +603,8 @@ Page({
 
   async renderCardToCanvas() {
     const { canvas, ctx } = await this.getCanvasNode();
+    // 保存 canvas 引用供导出使用
+    this._exportCanvas = canvas;
     const selectedTemplate = this.data.selectedTemplate || templates[0];
     const theme = this.getTemplateRenderConfig(selectedTemplate.id);
     
@@ -561,11 +621,9 @@ Page({
     const avatarImage = await this.loadCanvasImage(canvas, this.data.idolAvatar || this.data.idol?.avatar || '');
     const coverImage = await this.loadCanvasImage(canvas, this.data.displayImage || this.data.shareImage || '');
 
-    // 配置画布物理像素尺寸
-    const dpr = wx.getSystemInfoSync().pixelRatio || 1;
-    canvas.width = CARD_WIDTH * dpr;
-    canvas.height = CARD_HEIGHT * dpr;
-    ctx.scale(dpr, dpr);
+    // 配置画布物理像素尺寸（不使用 dpr 叠加，SCALE=3 已经是高清倍率）
+    canvas.width = CARD_WIDTH;
+    canvas.height = CARD_HEIGHT;
 
     // 清空并初始化
     ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
@@ -718,12 +776,17 @@ Page({
     ctx.globalAlpha = 1;
     ctx.restore();
 
-    this.exportWidth = CARD_WIDTH * dpr;
-    this.exportHeight = CARD_HEIGHT * dpr;
+    this.exportWidth = CARD_WIDTH;
+    this.exportHeight = CARD_HEIGHT;
   },
 
   exportCanvasFile() {
-    return this.getCanvasNode().then(({ canvas }) => new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
+      const canvas = this._exportCanvas;
+      if (!canvas) {
+        reject(new Error('画布未初始化'));
+        return;
+      }
       wx.canvasToTempFilePath({
         canvas,
         x: 0,
@@ -735,9 +798,12 @@ Page({
         fileType: 'png',
         quality: 1,
         success: (res) => resolve(res.tempFilePath),
-        fail: () => reject(new Error('导出卡片图片失败'))
-      }, this);
-    }));
+        fail: (err) => {
+          console.error('canvasToTempFilePath fail:', err);
+          reject(new Error('导出卡片图片失败'));
+        }
+      });
+    });
   },
 
   getSetting() {
@@ -835,7 +901,7 @@ Page({
       const tempFilePath = await this.exportCanvasFile();
       await this.ensurePhotoAlbumPermission();
       await this.saveImageToPhotosAlbum(tempFilePath);
-      this.showToastFunc();
+      wx.showToast({ title: '保存成功', icon: 'success' });
     } catch (error) {
       console.error('保存卡片失败:', error);
       const message = PHOTO_AUTH_DENY_RE.test(error?.errMsg || error?.message || '')
@@ -845,12 +911,5 @@ Page({
     } finally {
       this.setData({ isGenerating: false });
     }
-  },
-
-  showToastFunc() {
-    this.setData({ showToast: true });
-    setTimeout(() => {
-      this.setData({ showToast: false });
-    }, 3000);
   }
 });
